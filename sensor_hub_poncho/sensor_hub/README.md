@@ -1,33 +1,15 @@
 # SensorHub
 
-**TODO: Add description**
+**Description**  
+This is the code for my weather app that I will make using the book {Build a Weather Station with Elixir and Nerves}(https://pragprog.com/titles/passweather/build-a-weather-station-with-elixir-and-nerves/).  
+  
+This will use Nerves and Elixir you will also need to buy a {Rasberry Pi}(https://www.pishop.us/product/raspberry-pi-zero-2w-with-headers/?searchid=0&search_query=zero+w) and an {evironmental hat}(https://www.pishop.us/product/environment-sensor-hat-for-raspberry-pi-i2c-bus/?searchid=0&search_query=i2c+hat) that will keep scan the envrionment and upload the data to a database.  
 
-## Targets
-
-Nerves applications produce images for hardware targets based on the
-`MIX_TARGET` environment variable. If `MIX_TARGET` is unset, `mix` builds an
-image that runs on the host (e.g., your laptop). This is useful for executing
-logic tests, running utilities, and debugging. Other targets are represented by
-a short name like `rpi3` that maps to a Nerves system image for that platform.
-All of this logic is in the generated `mix.exs` and may be customized. For more
-information about targets see:
-
-https://hexdocs.pm/nerves/supported-targets.html
-
-## Getting Started
-
-To start your Nerves app:
-  * `export MIX_TARGET=my_target` or prefix every command with
-    `MIX_TARGET=my_target`. For example, `MIX_TARGET=rpi3`
-  * Install dependencies with `mix deps.get`
-  * Create firmware with `mix firmware`
-  * Burn to an SD card with `mix burn`
-
-## Learn more
-
-  * Official docs: https://hexdocs.pm/nerves/getting-started.html
-  * Official website: https://nerves-project.org/
-  * Forum: https://elixirforum.com/c/nerves-forum
-  * Elixir Slack #nerves channel: https://elixir-slack.community/
-  * Elixir Discord #nerves channel: https://discord.gg/elixir
-  * Source: https://github.com/nerves-project/nerves
+**Workflow**  
+```mermaid
+graph TD;
+    Weather Station-->Public Internet;
+    Public Internet-->Phoenix REST API;
+    Phoenix REST API-->Time-series Databse;
+    Grfana-->Time-series Database;
+```
