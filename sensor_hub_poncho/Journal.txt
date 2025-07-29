@@ -1,0 +1,163 @@
+Chapter 1: Elixir and Nerves for IoT
+    You will understand the way in which Nerves can help with IoT (Internet of Things). You will build your Pi and then flash the Nerves bare-bones and then make sure it can connect wirelessly to the main computer without any direct connections.
+
+    Why Nerves for IoT?
+        IoT is all about interconnected computational Devices geographically distributed. It is a way to keep track of the cars or devices on your network so you can keep live up to date data about any node on the network. Nerves comes in as it will allow you to use consumer-available hardware to build everything from scratch.
+
+    Time-Series Sensor Hub
+        You will use Nerves to framework to build the sensor hub and then use Phoenix to build a RESTful API.
+
+        Although you could use PostgreSQL for this the nature of the data will be time-series. Thus we want to use a data-base that is built around that, so TimescaleDB will work well here. This will automatically parse your data into describe chunks that will be more able to be used for our project. 
+
+        To Note: There is even a space partition for the data that can be helpful for making sure that you are noting where the data is coming from this would work well for any true weather app as where the data comes from can be crucial.
+
+    Laying Our the Architecture
+        We will have: 
+            Data Stations
+            {
+                Nerves Weather Stations
+            }
+            Data Transfer
+            {
+                Public Internet
+            }
+            Public Interface
+            {
+                Phoenix REST API
+                Time-series Database
+                Grafana
+                Users
+            }
+        
+        Definition: Cardinality
+            This is the amount of Data that a column should have. A UserID should have high cardinality as each user will have their own unique ID, but something like User_Type will have low cardinality as each user will only have 3 or more values: Admin, Basic, Paid, etc.
+
+        Once we have the node up we will use Phoenix to push the data onto the DB and once that is done the Phoenix part will be over (unless you want to post the data). But for the simple case you can use Grafana to visualize the data.
+
+        New Tech: Grafana is used to connect to different databases, it will be hosted via Docker and will help us interact and visualize the data we are receiving. 
+
+    Organizing Your Nerves Project
+        Nerves Projects have their own structure that make embedding an Elixir project really convenient. 
+
+        Planning Features
+            Here are the individual features we need to build:
+                Each Sensor will need to have its own GenServer and will be responsible for collecting it's sensor's measurements
+                Our Raspberry Pit will have a GenServer that will capture measurements from the connected sensors and publish them to Phoenix API
+                Nerves Firmware will start all the GenServers and the HTTP Publisher GenServer. This is the glue that will hold everything together.
+        
+        Organizing the Project
+            We will use what is called a Poncho Project for Nerves as it will help us keep the Elixir project structured as well as all the Firmware of the project. Thus allowing us to have decencies separate and still allowing us to share it we need. 
+            
+            Definition: Poncho Project
+                Alternative to umbrella projects: Poncho projects are a way to organize Elixir applications that are related but don't require the strict structure and interdependencies of an umbrella project.
+            
+            Here is the poncho project structure:
+                |-- Sensor_hub_poncho
+                    |-- publisher
+                    |-- sensor_hub
+                    |-- veml6030
+
+                    This the top level will be created with a simple mkdir and then the subdirectories can be made with mix new and should have their own config. 
+
+                sensor_hub is your firmware project this should deal with:
+                    configuration, life-cycle concerns, dependencies, and glue code
+                    So you will need to add other projects into the dependencies of the sensor_hub
+                
+            Poncho Projects will also have 2 types of dependency projects:
+                Hardware dependency projects; these don't need firmware as you will write to the hardware interfaces. veml6030 is like this as you will only wrap the light sensor.
+
+                Hardware-independent dependency; this implies that you will have code that will go to many types of hardware and will need to run on all of them. *publisher* is an example of this, it provides our HTTP API client. 
+
+            Firmware projects will connect to dependency projects using path dependencies.
+
+    Assembling the Weather Station
+        We will need an sensor array for this project as many times it will need to be build with solder and a breakout board, but we will use a solderless board called Qwiic Connect System.
+
+        Definition: I2C
+            Inter-Integrated Circuit is a communication protocol that allows us to connect multiple external devices to one or more hosts. 
+
+        Gathering Hardware
+            Check out all the bookmarks but I think I have everything I need with the links that Cut sent.
+
+        Assembling the Sensor Hub
+            
+Chapter 2 Wirelessly Reading Sensor Data (15)
+    Creating a Network-Enabled Sensor Hub Project
+        We want to generate a new Nerves Project (I made sure that I have all the needed libs for Nerves with the site https://hexdocs.pm/nerves/installation.html)
+        Burning the Firmware
+        Connecting the device via SSH
+        Setting the network settings.
+
+        First we will start by creating the top level directory.
+            $ mkdir sensor_hub_poncho
+            $ cd sensor_hub_poncho
+            $ mix nerves.new sensor_hub
+        
+        For the next parts we need to tell Nerves what "target" you're acting upon. Also be ready to burn the firmware to the SD card and be sure that it is the only card installed. 
+            $ cd sensor_hub
+            $ export MIX_TARGET=rpi0
+            $ mix deps.get
+            ...
+            $ mix firmware
+
+            # I got an error here that said that I have a version mismatch for Erlang so I went ahead and installed Erlang version 27
+                # Step 1: Install Erlang versions
+                asdf install erlang 27.0
+                asdf install erlang 28.0
+
+                # Step 2: Install matching Elixir versions
+                asdf install elixir 1.19.0-rc.0-otp-27
+                asdf install elixir 1.19.0-rc.0-otp-28
+
+                # Step 3: Set global Elixir version to OTP 28 (temporary or overwritten later)
+                asdf global elixir 1.19.0-rc.0-otp-28
+
+                # Step 4: Set global Elixir version to OTP 27 (final)
+                asdf global elixir 1.19.0-rc.0-otp-27
+
+                # Step 5: Set global Erlang version to match Elixir OTP 27
+                asdf global erlang 27.0
+
+                # Step 6: Clean and rebuild your Nerves project (run inside project folder)
+                rm -rf _build deps
+                mix deps.get
+                mix compile
+
+                # Step 7: Verify installed versions
+                erl -version
+                elixir --version
+
+                # Step 8: To switch to Erlang 28 + Elixir OTP 28 when needed (per shell session)
+                asdf shell erlang 28.0
+                asdf shell elixir 1.19.0-rc.0-otp-28
+
+                # Alternatively, create a `.tool-versions` file in the project directory:
+                # erlang 28.0
+                # elixir 1.19.0-rc.0-otp-28
+
+                # Optional:
+                # - Create `.tool-versions` files per project for automatic version switching.
+                # - Remove any system-wide Erlang/Elixir versions outside `asdf` to avoid conflicts.
+                # - Ensure your shell config loads `asdf` properly.
+
+                # This then gave me an error about needing an other version of elixir so again we change the version
+                asdf install elixir 1.18.3-otp-27
+                asdf global elixir 1.18.3-otp-27
+
+                # Then rebuild
+                mix deps.clean --all
+                mix deps.get
+                mix deps.compile
+                mix firmware
+
+            ...
+            $ mix burn
+            ==> nerves
+            ==> sensor_hub
+            Nerves environment
+            MIX_TARGET: rpi0
+            MIX_ENV: dev
+            Use 14.84 GiB memory card found at /dev/rdisk2? [Yn] y
+            100% [====================================] 33.32 MB in / 35.76 MB out
+            Success!
+            Elapsed time: 4.765 s
