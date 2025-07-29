@@ -1,0 +1,27 @@
+# sensor_hub_ponchp/sensor_hub
+# The directory Mix will write compiled artifacts to.
+sensor_hub_poncho/sensor_hub/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+sensor_hub_poncho/sensor_hub/cover/
+
+# The directory Mix downloads your dependencies sources to.
+sensor_hub_poncho/sensor_hub/deps/
+
+# Where third-party dependencies like ExDoc output generated docs.
+sensor_hub_poncho/sensor_hub/doc/
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+sensor_hub_poncho/sensor_hub/.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+sensor_hub_poncho/sensor_hub/erl_crash.dump
+
+# Temporary files, for example, from tests.
+/tmp/
+
+#formatter
+/sensor_hub_poncho/sensor_hub/.formatter.exs
+
+#VScode
+.vscode/settings.json
