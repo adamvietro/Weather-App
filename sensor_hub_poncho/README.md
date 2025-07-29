@@ -7,9 +7,33 @@ This will use Nerves and Elixir you will also need to buy a {Rasberry Pi}(https:
 
 **Workflow**  
 ```mermaid
-graph TD;
-    Weather Station-->Public Internet;
-    Public Internet-->Phoenix REST API;
-    Phoenix REST API-->Time-series Databse;
-    Grfana-->Time-series Database;
+erDiagram
+Weather Station 1 {
+}
+
+Weather Station 2 {
+
+}
+
+Weather Station N {
+}
+
+Public Internet {
+}
+
+Phoenix REST API {
+}
+
+Time-series Database {
+}
+
+Grafana {
+}
+
+Weather Station 1 |O--O| Public Internet: ""
+Weather Station 2 |O--O| Public Internet: ""
+Weather Station N |O--O| Public Internet: ""
+Public Internet }O--O{ Phoenix REST API: ""
+Phoenix REST API ||--O{ Time-series Database: ""
+Grafana ||--|| Time-series Database: ""
 ```
