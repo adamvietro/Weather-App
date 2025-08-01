@@ -161,3 +161,59 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
             100% [====================================] 33.32 MB in / 35.76 MB out
             Success!
             Elapsed time: 4.765 s
+
+        We now have a firmware burned into the Raspberry Pi and you can now insert the card into the Pi. Let's turn it on and SSH into it
+
+            ssh nerves.local
+            ...
+            iex(1)> hostname()
+            "nerves-dc74"
+            iex(2)> exit()
+            Connection to nerves.local closed
+
+        At the moment the ssh isn't working so I'm going to try to go right to WIFI.
+            You need to add :inets to the extra_applications.
+
+            Then you can set the wifi network with Vintage.Net.configure()
+                iex(1)> VintageNet.configure("wlan0", %{
+                ...(1)> type: VintageNetWiFi,
+                ...(1)> vintage_net_wifi: %{
+                ...(1)> networks: [%{
+                ...(1)> key_mgmt: :wpa_psk,
+                ...(1)> ssid: "<YOUR NETWORK NAME>",
+                ...(1)> psk: "<YOUR WIRELESS PASSWORD>"
+                ...(1)> }]
+                ...(1)> },
+                ...(1)> ipv4: %{method: :dhcp}
+                ...(1)> })
+
+        This won't work for me as I can't SSH atm so I will create a hardcoded version of the setting. To do so I need to create a file under:
+            rootfs_overlay/etc/vintage_net/config/network.config
+
+        Once that was done you need to add this line to the release within the mix.exs:
+            rootfs_overlay: "rootfs_overlay",
+
+        With these settings:
+            [
+                {
+                    "wlan0",
+                    %{
+                    type: VintageNetWiFi,
+                    vintage_net_wifi: %{
+                        networks: [
+                        %{
+                            key_mgmt: :wpa_psk,
+                            ssid: "YourWiFiSSID",
+                            psk: "YourWiFiPassword"
+                        }
+                        ]
+                    },
+                    ipv4: %{method: :dhcp}
+                    }
+                }
+            ]
+
+        Then I need to get the new deps and create the new firmware then burn it to the SD card.
+            MIX_TARGET=rpi0
+            mix firmware
+            mix burn

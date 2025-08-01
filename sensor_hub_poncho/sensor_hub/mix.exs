@@ -34,8 +34,9 @@ defmodule SensorHub.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :runtime_tools],
-      mod: {SensorHub.Application, []}
+      extra_applications: [:logger, :runtime_tools, :inets],
+      mod: {SensorHub.Application, []},
+      
     ]
   end
 
@@ -47,6 +48,7 @@ defmodule SensorHub.MixProject do
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.11.0"},
       {:toolshed, "~> 0.4.0"},
+      # {:mndp, "~> 0.1.0"},
 
       # Allow Nerves.Runtime on host to support development, testing and CI.
       # See config/host.exs for usage.
@@ -83,6 +85,7 @@ defmodule SensorHub.MixProject do
       cookie: "#{@app}_cookie",
       include_erts: &Nerves.Release.erts/0,
       steps: [&Nerves.Release.init/1, :assemble],
+      rootfs_overlay: "rootfs_overlay",
       strip_beams: Mix.env() == :prod or [keep: ["Docs"]]
     ]
   end
