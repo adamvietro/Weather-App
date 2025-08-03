@@ -4,13 +4,6 @@ import Config
 # See https://hexdocs.pm/ring_logger/readme.html for more information on
 # configuring ring_logger.
 
-config :nerves, :firmware,
-  usb_gadget: [
-    enabled: true,
-    functions: [:serial, :rndis],
-    serial_number: "sensorhub001"
-  ]
-
 config :logger, backends: [RingLogger]
 
 # Use shoehorn to start the main application. See the shoehorn
@@ -52,20 +45,16 @@ config :nerves_ssh,
 # Update regulatory_domain to your 2-letter country code E.g., "US"
 #
 # See https://github.com/nerves-networking/vintage_net for more information
-
 config :vintage_net,
-  regulatory_domain: "US",
+  regulatory_domain: "00",
   config: [
-    {"wlan0",
+    {"usb0", %{type: VintageNetDirect}},
+    {"eth0",
      %{
-       type: VintageNet.Technology.WiFi,
-       vintage_net_wifi: %{
-         ssid: "Vietro's(2)",
-         psk: "Racheldrive"
-       },
+       type: VintageNetEthernet,
        ipv4: %{method: :dhcp}
      }},
-    {"eth0", %{type: VintageNet.Technology.Ethernet}}
+    {"wlan0", %{type: VintageNetWiFi}}
   ]
 
 config :mdns_lite,
