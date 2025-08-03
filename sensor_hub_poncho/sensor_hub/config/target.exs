@@ -46,15 +46,29 @@ config :nerves_ssh,
 #
 # See https://github.com/nerves-networking/vintage_net for more information
 config :vintage_net,
-  regulatory_domain: "US",
+  regulatory_domain: "US", # Change to match your area
   config: [
-    {"usb0", %{type: VintageNetDirect}},
-    {"eth0",
-     %{
+    {"eth0", %{
        type: VintageNetEthernet,
-       ipv4: %{method: :dhcp}
-     }},
-    {"wlan0", %{type: VintageNetWiFi}}
+       ipv4: %{
+         method: :dhcp
+       }
+     }}
+    {"wlan0",
+      %{
+        type: VintageNetWiFi,
+        vintage_net_wifi: %{
+          networks: [
+            %{
+              key_mgmt: :wpa_psk,
+              ssid: "Vietro's(2)",
+              psk: "Racheldrive",
+            }
+          ]
+        },
+        ipv4: %{method: :dhcp},
+      }
+    }
   ]
 
 config :mdns_lite,
