@@ -217,3 +217,11 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
             MIX_TARGET=rpi0
             mix firmware
             mix burn
+
+        That didn't work so now I'm trying to be sure that I have everything installed. Check out this page to help you get everything installed.
+        https://hexdocs.pm/nerves/installation.html
+        It seems that the wx install isn't working for that page and I found that wx is not autoinstalled with the latest version of Unbuntu so I found this page:
+        https://askubuntu.com/questions/1522789/e-unable-to-locate-package-libwxgtk3-0-gtk3-dev
+
+        I have everything I think I need installed atm I will try to redo the firmware and burn.
+        

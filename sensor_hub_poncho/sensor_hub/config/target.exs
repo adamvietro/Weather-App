@@ -5,7 +5,11 @@ import Config
 # configuring ring_logger.
 
 config :nerves, :firmware,
-  rootfs_overlay: "rootfs_overlay"
+  usb_gadget: [
+    enabled: true,
+    functions: [:serial, :rndis],
+    serial_number: "sensorhub001"
+  ]
 
 config :logger, backends: [RingLogger]
 
@@ -49,19 +53,20 @@ config :nerves_ssh,
 #
 # See https://github.com/nerves-networking/vintage_net for more information
 
-
-# This block is for when you are using the network.config
-# config :vintage_net,
-#   regulatory_domain: "00",
-#   config: [
-#     {"usb0", %{type: VintageNetDirect}},
-#     {"eth0",
-#      %{
-#        type: VintageNetEthernet,
-#        ipv4: %{method: :dhcp}
-#      }},
-#     {"wlan0", %{type: VintageNetWiFi}}
-#   ]
+config :vintage_net,
+  regulatory_domain: "US",
+  config: [
+    {"wlan0",
+     %{
+       type: VintageNet.Technology.WiFi,
+       vintage_net_wifi: %{
+         ssid: "Vietro's(2)",
+         psk: "Racheldrive"
+       },
+       ipv4: %{method: :dhcp}
+     }},
+    {"eth0", %{type: VintageNet.Technology.Ethernet}}
+  ]
 
 config :mdns_lite,
   # The `hosts` key specifies what hostnames mdns_lite advertises.  `:hostname`

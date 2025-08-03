@@ -36,7 +36,7 @@ defmodule SensorHub.MixProject do
     [
       extra_applications: [:logger, :runtime_tools, :inets],
       mod: {SensorHub.Application, []},
-      
+
     ]
   end
 
@@ -63,7 +63,7 @@ defmodule SensorHub.MixProject do
       # version updates, please review their release notes in case
       # changes to your application are needed.
       {:nerves_system_rpi, "~> 1.24", runtime: false, targets: :rpi},
-      {:nerves_system_rpi0, "~> 1.24", runtime: false, targets: :rpi0},
+      {:nerves_system_rpi0, "~> 1.20", runtime: false, targets: :rpi0},
       {:nerves_system_rpi2, "~> 1.24", runtime: false, targets: :rpi2},
       {:nerves_system_rpi3, "~> 1.24", runtime: false, targets: :rpi3},
       {:nerves_system_rpi3a, "~> 1.24", runtime: false, targets: :rpi3a},
