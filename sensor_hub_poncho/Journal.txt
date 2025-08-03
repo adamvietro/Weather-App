@@ -150,8 +150,8 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
                 mix deps.compile
                 mix firmware
 
-            ...
-            $ mix burn
+                ...
+                $ mix burn
             ==> nerves
             ==> sensor_hub
             Nerves environment
@@ -171,57 +171,97 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
             iex(2)> exit()
             Connection to nerves.local closed
 
-        At the moment the ssh isn't working so I'm going to try to go right to WIFI.
-            You need to add :inets to the extra_applications.
+                    # 
+                        At the moment the ssh isn't working so I'm going to try to go right to WIFI.
+                            You need to add :inets to the extra_applications.
 
-            Then you can set the wifi network with Vintage.Net.configure()
-                iex(1)> VintageNet.configure("wlan0", %{
-                ...(1)> type: VintageNetWiFi,
-                ...(1)> vintage_net_wifi: %{
-                ...(1)> networks: [%{
-                ...(1)> key_mgmt: :wpa_psk,
-                ...(1)> ssid: "<YOUR NETWORK NAME>",
-                ...(1)> psk: "<YOUR WIRELESS PASSWORD>"
-                ...(1)> }]
-                ...(1)> },
-                ...(1)> ipv4: %{method: :dhcp}
-                ...(1)> })
+                            Then you can set the wifi network with Vintage.Net.configure()
+                                iex(1)> VintageNet.configure("wlan0", %{
+                                ...(1)> type: VintageNetWiFi,
+                                ...(1)> vintage_net_wifi: %{
+                                ...(1)> networks: [%{
+                                ...(1)> key_mgmt: :wpa_psk,
+                                ...(1)> ssid: "<YOUR NETWORK NAME>",
+                                ...(1)> psk: "<YOUR WIRELESS PASSWORD>"
+                                ...(1)> }]
+                                ...(1)> },
+                                ...(1)> ipv4: %{method: :dhcp}
+                                ...(1)> })
 
-        This won't work for me as I can't SSH atm so I will create a hardcoded version of the setting. To do so I need to create a file under:
-            rootfs_overlay/etc/vintage_net/config/network.config
+                        This won't work for me as I can't SSH atm so I will create a hardcoded version of the setting. To do so I need to create a file under:
+                            rootfs_overlay/etc/vintage_net/config/network.config
 
-        Once that was done you need to add this line to the release within the mix.exs:
-            rootfs_overlay: "rootfs_overlay",
+                        Once that was done you need to add this line to the release within the mix.exs:
+                            rootfs_overlay: "rootfs_overlay",
 
-        With these settings:
-            [
-                {
-                    "wlan0",
-                    %{
+                        With these settings:
+                            [
+                                {
+                                    "wlan0",
+                                    %{
+                                    type: VintageNetWiFi,
+                                    vintage_net_wifi: %{
+                                        networks: [
+                                        %{
+                                            key_mgmt: :wpa_psk,
+                                            ssid: "YourWiFiSSID",
+                                            psk: "YourWiFiPassword"
+                                        }
+                                        ]
+                                    },
+                                    ipv4: %{method: :dhcp}
+                                    }
+                                }
+                            ]
+
+                        Then I need to get the new deps and create the new firmware then burn it to the SD card.
+                            MIX_TARGET=rpi0
+                            mix firmware
+                            mix burn
+
+                        That didn't work so now I'm trying to be sure that I have everything installed. Check out this page to help you get everything installed.
+                        https://hexdocs.pm/nerves/installation.html
+                        It seems that the wx install isn't working for that page and I found that wx is not autoinstalled with the latest version of Unbuntu so I found this page:
+                        https://askubuntu.com/questions/1522789/e-unable-to-locate-package-libwxgtk3-0-gtk3-dev
+
+                        I have everything I think I need installed atm I will try to redo the firmware and burn.
+
+        Okay so check out this site in-order to get the auto connect for the wifi (https://github.com/nerves-networking/vintage_net). With making sure that the right firmware (rpi3a) and setting the right version of the wifi setup.
+            config :vintage_net,
+            regulatory_domain: "US", # Change to match your area
+            config: [
+                {"eth0", %{
+                type: VintageNetEthernet,
+                ipv4: %{
+                    method: :dhcp
+                }
+                }},
+                {"wlan0",
+                %{
                     type: VintageNetWiFi,
                     vintage_net_wifi: %{
-                        networks: [
+                    networks: [
                         %{
-                            key_mgmt: :wpa_psk,
-                            ssid: "YourWiFiSSID",
-                            psk: "YourWiFiPassword"
+                        key_mgmt: :wpa_psk,
+                        ssid: "Your WiFi SSID",
+                        psk: "passphrase or psk",
                         }
-                        ]
+                    ]
                     },
-                    ipv4: %{method: :dhcp}
-                    }
+                    ipv4: %{method: :dhcp},
+                }
                 }
             ]
 
-        Then I need to get the new deps and create the new firmware then burn it to the SD card.
-            MIX_TARGET=rpi0
-            mix firmware
-            mix burn
-
-        That didn't work so now I'm trying to be sure that I have everything installed. Check out this page to help you get everything installed.
-        https://hexdocs.pm/nerves/installation.html
-        It seems that the wx install isn't working for that page and I found that wx is not autoinstalled with the latest version of Unbuntu so I found this page:
-        https://askubuntu.com/questions/1522789/e-unable-to-locate-package-libwxgtk3-0-gtk3-dev
-
-        I have everything I think I need installed atm I will try to redo the firmware and burn.
-        
+    Capturing Sensor Data
+        Okay so now that we are ready to move onto the capture part of the process we need to download the spec sheet for the environmental hat. Here are some of the information that we will need:
+            Light Sensor
+                I2C address: 0x53
+            Temp/Humidity/Air Pressure
+                I2c address: 0x76
+            Motion Sensor: 
+                I2C adress: 0x68
+            UV Sensor:
+                I2C address: 0x53
+            VOC Sensor:
+                I2C address: 0x59
