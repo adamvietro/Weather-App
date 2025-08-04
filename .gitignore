@@ -24,4 +24,4 @@ sensor_hub_poncho/sensor_hub/erl_crash.dump
 /sensor_hub_poncho/sensor_hub/.formatter.exs
 
 #VScode
-.vscode/settings.json
+.vscode/
