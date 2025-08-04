@@ -254,9 +254,9 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
             ]
 
     Capturing Sensor Data
-        Okay so now that we are ready to move onto the capture part of the process we need to download the spec sheet for the environmental hat. Here are some of the information that we will need:
+        Okay so now that we are ready to move onto the capture part of the process we need to download the spec sheet for the environmental hat (https://www.waveshare.com/environment-sensor-hat.htm). Here are some of the information that we will need:
             Light Sensor
-                I2C address: 0x53
+                I2C address: 0x29
             Temp/Humidity/Air Pressure
                 I2c address: 0x76
             Motion Sensor: 
@@ -265,3 +265,105 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
                 I2C address: 0x53
             VOC Sensor:
                 I2C address: 0x59
+
+        These might be different for your device I was able to look up the sensor data on line and it even has them on the board itself. Some of the sensors will have different sensitivities so be sure to check those out too.
+
+        Now let's change a few deps and then upload the new firmware. 
+            $ mix deps.get
+            ...
+            $ mix firmware
+            ...
+            $ mix upload
+            ...
+            $ ssh nerves.local
+            ...
+
+        So again my current settings I was unable to use the nerves.local so I had to create an firmware update script and then use that to upload it to the pi.
+            mix firmware.gen.script # This is instead of the mix upload
+            ./upload.sh 192.168.x.x $ Your IP address of the pi
+
+        Now you can ssh into the device.
+            ssh 192.168.x.x
+                    This is the way to do it with the basic sensor that the book is using.
+                    Here is where we will start to take some the sensor data.
+                        ex(1)> alias Circuits.I2C
+                        Circuits.I2C
+                        iex(2)> sensor = 0x29 # This is the address of the light sensor
+                        72
+                        iex(3)> command = <<0>>
+                        <<0>>
+                        iex(4)> byte_size = 2
+                        2
+                        iex(5)> {:ok, i2c_ref} = I2C.open("i2c-1")
+                        {:ok, #Reference<0.1635386997.268828675.62058>}
+                        iex(6)> <<value::little-16>> = I2C.write_read!(i2c_ref, sensor, command, 2)
+                        <<1, 0>>
+                        iex(7)> value |> inspect(base: :binary)
+                        "0b0"
+
+                    With the value of 0b0 being returned we know that the sensor is turned off. Let's turn it on.
+                        iex(8)> config = 0b0001100000000000
+                        6144
+                        iex(9)> Circuits.I2C.write(i2c_ref, sensor, <<0, config::little-16>>)
+                        :ok
+                        iex(10)> <<value::little-16>> = I2C.write_read!(i2c_ref, sensor, command, 2)
+                        <<0, 24>>
+                        iex(11)> value |> inspect(base: :binary)
+                        "0b1100000000000"
+
+        This didn't work for me so Ill try an other way
+            alias Circuits.I2C
+            import Bitwise
+
+            sensor = 0x29               # Sensor I2C address
+            command_bit = 0x80          # Command bit to indicate command register (depends on sensor)
+            enable_register = 0x00      # Register address to enable power and ALS
+            config_register = 0x01      # Configuration register
+            data_register = 0x14        # Data register address (where readings start)
+
+            # Bit flags to enable power and ALS (ambient light sensing)
+            enable_power_on = 0x01
+            enable_als_enable = 0x02
+
+            # Combine flags with bitwise OR
+            enable_value = enable_power_on ||| enable_als_enable
+
+            # Open I2C bus
+            {:ok, i2c_ref} = I2C.open("i2c-1")
+
+            # Write to enable register with command bit set
+            I2C.write(i2c_ref, sensor, <<command_bit ||| enable_register, enable_value>>)
+
+            # Optionally configure other registers here...
+
+            # Read 2 bytes from the data register
+            <<raw_value::little-16>> = I2C.write_read!(i2c_ref, sensor, <<command_bit ||| data_register>>, 2)
+
+            IO.inspect(raw_value, base: :binary)
+
+        Now we can start to do something with the sensor.
+            iex(12)> light_reading = 4
+            4
+            iex(13)> <<value::little-16>> =
+            ...(13)> Circuits.I2C.write_read!(i2c_ref, sensor, <<light_reading>>, 2)
+            iex(14)> value
+            440
+
+        We get a value back. Now, put your hand over the sensor so that there’s less light and see if the value is lower:
+            iex(15)> <<value::little-16>> =
+            ...(15)> Circuits.I2C.write_read!(i2c_ref, sensor, <<light_reading>>, 2)
+            iex(16)> value
+            40
+
+        Now we can try and transfor the data into something useful.
+            iex(17)> measure_light = fn i2c, address ->
+            ...(17)> <<value::little-16>> = I2C.write_read!(i2c, address, <<4>>, 2)
+            ...(17)> value * 0.2304
+            ...(17)> end
+            #Function<43.97283095/2 in :erl_eval.expr/5>
+
+            iex(16)> measure_light.(i2c_ref, sensor)
+            57.6
+        
+    What you have done...
+        Great job so far. You have created your first poncho project, you update the firmware and flashed it to an SD card, you then updated the config file so that your pi will automatically connect to the wifi network, you then started the sensor and got some raw values back, lastly you created a function that will turn the raw data into something that is more managable. 
