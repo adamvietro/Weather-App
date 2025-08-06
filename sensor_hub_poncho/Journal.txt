@@ -367,3 +367,122 @@ Chapter 2 Wirelessly Reading Sensor Data (15)
         
     What you have done...
         Great job so far. You have created your first poncho project, you update the firmware and flashed it to an SD card, you then updated the config file so that your pi will automatically connect to the wifi network, you then started the sensor and got some raw values back, lastly you created a function that will turn the raw data into something that is more managable. 
+
+Chapter 3 Aggregating Sensor Data (29)
+    We now need to wrap each GenServer so that they will power on and gather data when the device is powered on. Each sensor needs to be its own GenServer and will have a Supervisor to deal with the start and aggrigration of the data.
+
+    Wrapping Sensors in GenServers
+        We will start a new mix project withing the Poncho
+            $ mix new veml6030
+            $ cd veml6030
+
+        Once that is done we need to update the deps to have the i2c interface and firmware
+
+            {:circuits_i2c, "~> 0.3.8"}
+
+        This project will continue to get more and more complex so keeping the aggrigration in it's own project will help to keep everything in the right spot.
+
+        Build a Core from the Spec Sheet
+            Acronim: CRC mean to Construct |> Reduce |> Convert. This is the way we will take the raw data and make it useable for out site.
+
+            Start off by creating a file at the location lib/veml6030/config.ex (this will go inside the veml6030 project and you will create an other veml6030 folder)
+                defmodule Veml6030.Config do
+                    defstruct [
+                        gain: :gain_1_4th,
+                        int_time: :it_100ms,
+                        shutdown: false,
+                        interrupt: false
+                    ]
+
+                    def new, do: struct(__MODULE__)
+                    def new(opts) when is_list(opts) do
+                        struct(__MODULE__, opts)
+                    end
+                end
+
+            We now have the constructor out of the way now we need to deal with the converter. This will be the format of the integers that we will use.
+                def to_integer(config) do
+                    reserved = 0
+                    persistence_protect = 0
+                    <<integer::16>> = <<
+                        reserved::3,
+                        gain(config.gain)::2,
+                        reserved::1,
+                        int_time(config.int_time)::4,
+                        persistence_protect::2,
+                        reserved::2,
+                        interrupt(config.interrupt)::1,
+                        shutdown(config.shutdown)::1
+                    >>
+                    integer
+                end
+
+            This is what we will use to deal with all the settings of the sensors, in order to pattern match different settings. These will take a setting we want and transform them into bits based off the spec sheet. 
+                defp gain(:gain_1x), do: 0b0
+                defp gain(:gain_2x), do: 0b01
+                defp gain(:gain_1_8th), do: 0b10
+                defp gain(:gain_1_4th), do: 0b11
+                defp gain(:gain_default), do: 0b11
+                defp int_time(:it_25_ms), do: 0b1100
+                defp int_time(:it_50_ms), do: 0b1000
+                defp int_time(:it_100_ms), do: 0b0000
+                defp int_time(:it_200_ms), do: 0b0001
+                defp int_time(:it_400_ms), do: 0b0010
+                defp int_time(:it_800_ms), do: 0b0011
+                defp int_time(:it_default), do: 0b0000
+                defp shutdown(true), do: 1
+                defp shutdown(_), do: 0
+                defp interrupt(true), do: 1
+                defp interrupt(_), do: 0
+
+            We will now need to worry about the conversion factor for the values that we get from the sensor.
+                @to_lumens_factor %{
+                    {:it_800_ms, :gain_2x} => 0.0036,
+                    {:it_800_ms, :gain_1x} => 0.0072,
+                    {:it_800_ms, :gain_1_4th} => 0.0288,
+                    {:it_800_ms, :gain_1_8th} => 0.0576,
+                    {:it_400_ms, :gain_2x} => 0.0072,
+                    {:it_400_ms, :gain_1x} => 0.0144,
+                    {:it_400_ms, :gain_1_4th} => 0.0576,
+                    {:it_400_ms, :gain_1_8th} => 0.1152,
+                    {:it_200_ms, :gain_2x} => 0.0144,
+                    {:it_200_ms, :gain_1x} => 0.0288,
+                    {:it_200_ms, :gain_1_4th} => 0.1152,
+                    {:it_200_ms, :gain_1_8th} => 0.2304,
+                    {:it_100_ms, :gain_2x} => 0.0288,
+                    {:it_100_ms, :gain_1x} => 0.0576,
+                    {:it_100_ms, :gain_1_4th} => 0.2304,
+                    {:it_100_ms, :gain_1_8th} => 0.4608,
+                    {:it_50_ms, :gain_2x} => 0.0576,
+                    {:it_50_ms, :gain_1x} => 0.1152,
+                    {:it_50_ms, :gain_1_4th} => 0.4608,
+                    {:it_50_ms, :gain_1_8th} => 0.9216,
+                    {:it_25_ms, :gain_2x} => 0.1152,
+                    {:it_25_ms, :gain_1x} => 0.2304,
+                    {:it_25_ms, :gain_1_4th} => 0.9216,
+                    {:it_25_ms, :gain_1_8th} => 1.8432
+                }
+
+                def to_lumens(config, measurement) do
+                    @to_lumens_factor[{config.int_time, config.gain}] * measurement
+                end
+                            
+            Let's take it on a test drive
+                iex(1) ▶ VEML6030.Config.new()
+                %VEML6030.Config{
+                gain: :gain_1_4th,
+                int_time: :it_100_ms,
+                interrupt: false,
+                shutdown: false
+                }
+                iex(2) ▶ VEML6030.Config.new() |>
+                ...(2) ▶ VEML6030.Config.to_integer() |>
+                ...(2) ▶ inspect(base: :hex)
+                "0x1800"
+                iex(3) ▶ [gain: :gain_1x] |>
+                ...(3) ▶ VEML6030.Config.new() |>
+                ...(3) ▶ VEML6030.Config.to_integer() |>
+                ...(3) ▶ inspect(base: :hex)
+                "0x0"
+
+        Create Boundary Hardware Layer (33)

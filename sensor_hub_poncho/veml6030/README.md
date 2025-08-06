@@ -1,6 +1,6 @@
 # Veml6030
 
-**TODO: Add description**
+This is the GenServer project to start and gather data from the Sensor hub. You will need to make sure that the differnt sensors are started and have some sort of aggregration so that you can do something with the data and a person will be able to understand the information.
 
 ## Installation
 
