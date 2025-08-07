@@ -6,7 +6,7 @@ defmodule VEML6030.Config do
 
   def new, do: struct(__MODULE__)
 
-  def new(opts) when is_list(opts) do
+  def new(opts) do
     struct(__MODULE__, opts)
   end
 

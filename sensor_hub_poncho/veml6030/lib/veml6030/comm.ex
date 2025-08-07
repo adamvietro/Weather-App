@@ -1,10 +1,10 @@
-defmodule Veml6030.Comm do
-  aliaa Circuits.I2C
+defmodule VEML6030.Comm do
+  alias Circuits.I2C
   alias VEML6030.Config
 
   @light_register <<4>>
 
-  def discover(possible_addresses \\ [0x10, 0x48]) do
+  def discover(possible_addresses \\ [0x10, 0x29]) do
     I2C.discover_one!(possible_addresses)
   end
 
@@ -21,7 +21,7 @@ defmodule Veml6030.Comm do
 
   def read(i2c, sensor, configuration) do
     <<value::little-16>> =
-      I2C.write_read(i2c, sensor, @light_register, 2)
+      I2C.write_read!(i2c, sensor, @light_register, 2)
 
       Config.to_lumens(configuration, value)
   end

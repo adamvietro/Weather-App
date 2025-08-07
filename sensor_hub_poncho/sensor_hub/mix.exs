@@ -47,13 +47,14 @@ defmodule SensorHub.MixProject do
       {:shoehorn, "~> 0.9.1"},
       {:ring_logger, "~> 0.11.0"},
       {:toolshed, "~> 0.4.0"},
-      {:circuits_i2c, "~> 0.3.8"},
+      {:circuits_i2c, "~> 1.0"},
 
       # Allow Nerves.Runtime on host to support development, testing and CI.
       # See config/host.exs for usage.
       {:nerves_runtime, "~> 0.13.0"},
 
       # Dependencies for all targets except :host
+      {:veml6030, path: "../veml6030", targets: @all_targets},
       {:nerves_pack, "~> 0.7.1", targets: @all_targets},
 
       # Dependencies for specific targets

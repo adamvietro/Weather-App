@@ -533,4 +533,127 @@ Chapter 3 Aggregating Sensor Data (29)
             end
 
         Wrap the core and Hardware in a GenServer (35)
-            
+            We will want to wrap all the sensor comms witin a GenServer, as it will handle most all the communication we will put it at the top of the file structure (lib/veml6030/ex). The mix new will have created a sample veml6030.ex file and you can just replace it with the below. Check the comments and the @doc to see about each function and call.
+                defmodule Veml6030 do
+                    use GenServer
+
+                    require Logger
+
+                    alias Veml6030.{Comm, Config}
+
+                    @moduledoc """
+                    A GenServer for the VEML6030 light sensor. It reads the light level
+                    and converts it to lumens based on the configuration provided.
+                    The sensor can be configured with different gain and integration times.
+                    """
+                    def start_link(options \\ %{}) do
+                        GenServer.start_link(__MODULE__, options, name: __MODULE__)
+                    end
+
+                    def get_measurement do
+                        GenServer.call(__MODULE__, :get_measurement)
+                    end
+
+                    @doc """
+                    Starts the VEML6030 GenServer with the given options. It will start the and then set an interval to
+                    read and then log the light reading every second.
+                    """
+                    def init(%{address: address, i2c_bus_name: bus_name} = args) do
+                        i2c = Comm.open(bus_name)
+
+                        config =
+                        args
+                        |> Map.take([:gain, :int_time, :shutdown, :interrupt])
+                        |> Config.new()
+
+                        Comm.write_config(config, i2c, address)
+                        :timer.send_interval(1_000, :measure)
+
+                        state = %{
+                        i2c: i2c,
+                        address: address,
+                        config: config,
+                        last_reading: :no_reading
+                        }
+
+                        {:ok, state}
+                    end
+
+                    @doc """
+                    Starts the VEML6030 GenServer with the default configuration. This is for when you don't
+                    have the correct bus and address set.
+                    """
+                    def init(args) do
+                        {bus_name, address} = Comm.discover()
+                        transport = "bus: #{bus_name}, address: #{address}"
+
+                        Logger.info("Starting VEML6030. Please specify an address and a bus")
+                        Logger.info("Starting on " <> transport)
+
+                        defaults =
+                        args
+                        |> Map.put(:adress, address)
+                        |> Map.put(:i2c_bus_name, bus_name)
+
+                        init(defaults)
+                    end
+
+                    @doc """
+                    This are set to take the last reading froom the sensor, then update the reading with the new reading and
+                    appening it to the state.
+                    """
+                    @impl true
+                    def handle_info(:measure, %{i2c: i2c, address: address, config: config} = state) do
+                        last_reading = Comm.read(i2c, address, config)
+                        updated_with_reading = %{state | last_reading: last_reading}
+
+                        {:noreply, updated_with_reading}
+                    end
+
+                    @doc """
+                    This is for calling the GenServer to get the last reading from the sensor.
+                    """
+                    @impl true
+                    def handle_call(:get_measurement, _from, state) do
+                        {:reply, state.last_reading, state}
+                    end
+                end
+        
+            We now need to add in the new deps to the mix.ex in the sensor_hub project.
+                defp deps do
+                    [
+                    ...
+                    # Dependencies for all targets except :host
+                    {:veml6030, path: "../veml6030", targets: @all_targets},
+                    ...
+                    ]
+                end
+
+            Then we will need to get the new deps and then recreate the firmware and then upload the new firmware then shh into the Raspberry Pi
+                $ cd sensor_hub
+                $ mix deps.get
+                ...
+                $ mix firmware
+                ...
+                report erratum • discuss
+                $ mix upload
+                ...
+                # You may have to wait a little until the device reboots
+                $ ssh nerves.local
+                ...
+
+            Then run these commands
+                iex(1)> VEML6030.start_link()
+                {:ok, #PID<0.1278.0>}
+                iex(2)> VEML6030.get_measurement() # Hand covering the sensor
+                6.4512
+                iex(3)> VEML6030.get_measurement() # Hand not covering the sensor
+                71.6544
+
+    Quicknote: So when building the project names for the modules I was using the VScode auto fill for the name of the modules. In the book we used all uppercase characters for the Modules, so when try to use the built-in functions and then the other things we ran into issues that I should have seen just from the warnings. Keep the case of the characters in mind when building the modules.
+
+    Also the address of the light sensor on my environmental hat is 0x29 not 0x48 so I had to change that in the comm.ex file in the possible address.
+
+    I think that I might need to change some of the settings in order to get my light sensor to turn on.
+
+    Build the Firmware Project (38)
