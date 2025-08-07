@@ -486,3 +486,51 @@ Chapter 3 Aggregating Sensor Data (29)
                 "0x0"
 
         Create Boundary Hardware Layer (33)
+            We now have the frame work for dealing with the general configuration. We shield a user from the tedium of dealing with the different settings too.
+
+            We will not create a new file at lib/veml6030/comm.ex
+            defmodule Veml6030.Comm do
+                aliaa Circuits.I2C
+                alias VEML6030.Config
+
+                @light_register <<4>>
+                # These will set up the alias for the previously made files
+
+                @doc """
+                    This will help us discover posibble adresses.
+                """
+                def discover(possible_addresses \\ [0x10, 0x48]) do
+                    I2C.discover_one!(possible_addresses)
+                end
+
+                @doc """ 
+                    We open a bus with this and it will raise a failure if it doesn't work and we can "let it
+                    heal"
+                """
+                def open(bus_name) do
+                    {:ok, i2c} = I2C.open(bus_name)
+                    i2c
+                end
+
+                @doc """
+                    We will need to write a config or a command to the senser.
+                """
+                def write_config(configuration, i2c, sensor) do
+                    command = Config.to_integer(configuration)
+
+                    I2C.write(i2c, sensor, <<0, command::little-16>>)
+                end
+
+                @doc """
+                    This is for dealing with the sensor data and uses the configuration to convert it.
+                """
+                def read(i2c, sensor, configuration) do
+                    <<value::little-16>> =
+                    I2C.write_read(i2c, sensor, @light_register, 2)
+
+                    Config.to_lumens(configuration, value)
+                end
+            end
+
+        Wrap the core and Hardware in a GenServer (35)
+            
