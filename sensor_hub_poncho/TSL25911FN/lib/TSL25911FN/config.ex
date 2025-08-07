@@ -1,4 +1,6 @@
-defmodule VEML6030.Config do
+defmodule TSL25911FN.Config do
+  import Bitwise
+
   defstruct gain: :gain_1_4th,
             int_time: :it_100_ms,
             shutdown: false,
@@ -10,25 +12,39 @@ defmodule VEML6030.Config do
     struct(__MODULE__, opts)
   end
 
-  def to_integer(config) do
-    reserved = 0
-    persistence_protect = 0
+  # This is the version of the to_integer function that we will use for the VEML6030 sensor.
+  # We don't have that.
+  # def to_integer(config) do
+  #   reserved = 0
+  #   persistence_protect = 0
 
-    <<integer::16>> = <<
-      reserved::3,
-      gain(config.gain)::2,
-      reserved::1,
-      int_time(config.int_time)::4,
-      persistence_protect::2,
-      reserved::2,
-      interrupt(config.interrupt)::1,
-      shutdown(config.shutdown)::1
-    >>
+  #   <<integer::16>> = <<
+  #     reserved::3,
+  #     gain(config.gain)::2,
+  #     reserved::1,
+  #     int_time(config.int_time)::4,
+  #     persistence_protect::2,
+  #     reserved::2,
+  #     interrupt(config.interrupt)::1,
+  #     shutdown(config.shutdown)::1
+  #   >>
 
-    integer
+  #   integer
+  # end
+
+  # We will need to use an other version of hte to_integer function
+  def to_control_byte(%__MODULE__{gain: gain, int_time: int_time}) do
+    gain(gain) <<< 4 ||| int_time(int_time)
   end
 
-  defp gain(:gain_1x), do: 0b0
+  def to_enable_byte(%__MODULE__{shutdown: shutdown, interrupt: interrupt}) do
+    shutdown_bit = if shutdown, do: 0, else: 1
+    interrupt_bit = if interrupt, do: 1, else: 0
+
+    interrupt_bit <<< 4 ||| 1 <<< 1 ||| shutdown_bit
+  end
+
+  defp gain(:gain_1x), do: 0b00
   defp gain(:gain_2x), do: 0b01
   defp gain(:gain_1_8th), do: 0b10
   defp gain(:gain_1_4th), do: 0b11
@@ -75,7 +91,18 @@ defmodule VEML6030.Config do
     {:it_25_ms, :gain_1_8th} => 1.8432
   }
 
-  def to_lumens(config, measurement) do
-    @to_lumens_factor[{config.int_time, config.gain}] * measurement
+  # def to_lumens(config, measurement) do
+  #   @to_lumens_factor[{config.int_time, config.gain}] * measurement
+  # end
+
+  def to_lumens(%{int_time: it, gain: gain}, ch0, ch1) do
+    key = {it, gain}
+
+    factor =
+      Map.get(@to_lumens_factor, key) ||
+        raise ArgumentError, "Unsupported integration_time/gain combination: #{inspect(key)}"
+
+    lux = ch0 - ch1
+    max(lux * factor, 0.0)
   end
 end

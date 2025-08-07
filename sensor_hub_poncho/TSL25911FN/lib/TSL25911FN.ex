@@ -1,12 +1,12 @@
-defmodule VEML6030 do
+defmodule TSL25911FN do
   use GenServer
 
   require Logger
 
-  alias VEML6030.{Comm, Config}
+  alias TSL25911FN.{Comm, Config}
 
   @moduledoc """
-  A GenServer for the VEML6030 light sensor. It reads the light level
+  A GenServer for the TSL25911FN light sensor. It reads the light level
   and converts it to lumens based on the configuration provided.
   The sensor can be configured with different gain and integration times.
   """
@@ -19,7 +19,7 @@ defmodule VEML6030 do
   end
 
   @doc """
-  Starts the VEML6030 GenServer with the given options. It will start the and then set an interval to
+  Starts the TSL25911FN GenServer with the given options. It will start the and then set an interval to
   read and then log the light reading every second.
   """
   @impl true
@@ -45,13 +45,13 @@ defmodule VEML6030 do
   end
 
   @doc """
-  Starts the VEML6030 GenServer with the default configuration. This is for when you don't
+  Starts the TSL25911FN GenServer with the default configuration. This is for when you don't
   have the correct bus and address set.
   """
   def init(args) do
     {bus_name, address} = Comm.discover()
     transport = "bus: #{bus_name}, address: #{address}"
-    Logger.info("Starting VEML6030. Please specify an address and a bus.")
+    Logger.info("Starting TSL25911FN. Please specify an address and a bus.")
     Logger.info("Starting on " <> transport)
 
     defaults =
@@ -80,5 +80,11 @@ defmodule VEML6030 do
   @impl true
   def handle_call(:get_measurement, _from, state) do
     {:reply, state.last_reading, state}
+  end
+
+  @impl true
+  def terminate(_reason, %{i2c: i2c}) do
+    Circuits.I2C.close(i2c)
+    :ok
   end
 end

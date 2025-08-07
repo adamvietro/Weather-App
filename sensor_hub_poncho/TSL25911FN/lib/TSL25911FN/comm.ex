@@ -1,0 +1,36 @@
+defmodule TSL25911FN.Comm do
+  alias Circuits.I2C
+  alias TSL25911FN.Config
+
+  @enable_register 0x00
+  @control_register 0x01
+  @als_data_register 0xB4
+
+  def discover(possible_addresses \\ [0x10, 0x29]) do
+    I2C.discover_one!(possible_addresses)
+  end
+
+  def open(bus_name) do
+    {:ok, i2c} = I2C.open(bus_name)
+    i2c
+  end
+
+  def write_config(config, i2c, sensor) do
+    enable_byte = Config.to_enable_byte(config)
+    control_byte = Config.to_control_byte(config)
+
+    # Write ENABLE register (1 byte)
+    I2C.write(i2c, sensor, <<@enable_register, enable_byte>>)
+
+    # Write CONTROL register (1 byte)
+    I2C.write(i2c, sensor, <<@control_register, control_byte>>)
+  end
+
+  def read(i2c, sensor, config) do
+    # Read 4 bytes from ALS data registers (low and high)
+    # The write_read! call: write the register address, then read 4 bytes
+    <<ch0::little-16, ch1::little-16>> = I2C.write_read!(i2c, sensor, <<@als_data_register>>, 4)
+
+    Config.to_lumens(config, ch0, ch1)
+  end
+end
