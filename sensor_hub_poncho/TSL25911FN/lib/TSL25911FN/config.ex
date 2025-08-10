@@ -38,24 +38,22 @@ defmodule TSL25911FN.Config do
   end
 
   def to_enable_byte(%__MODULE__{shutdown: shutdown, interrupt: interrupt}) do
-    shutdown_bit = if shutdown, do: 0, else: 1
-    interrupt_bit = if interrupt, do: 1, else: 0
-
-    interrupt_bit <<< 4 ||| 1 <<< 1 ||| shutdown_bit
+    interrupt(interrupt) <<< 4 ||| 1 <<< 1 ||| shutdown(shutdown)
   end
 
-  defp gain(:gain_1x), do: 0b00
-  defp gain(:gain_2x), do: 0b01
-  defp gain(:gain_1_8th), do: 0b10
-  defp gain(:gain_1_4th), do: 0b11
+  defp gain(:low), do: 0b00
+  defp gain(:med), do: 0b01
+  defp gain(:high), do: 0b10
+  defp gain(:max), do: 0b11
   defp gain(:gain_default), do: 0b11
-  defp int_time(:it_25_ms), do: 0b1100
-  defp int_time(:it_50_ms), do: 0b1000
-  defp int_time(:it_100_ms), do: 0b0000
-  defp int_time(:it_200_ms), do: 0b0001
-  defp int_time(:it_400_ms), do: 0b0010
-  defp int_time(:it_800_ms), do: 0b0011
-  defp int_time(:it_default), do: 0b0000
+
+  defp int_time(:it_100_ms), do: 0b000
+  defp int_time(:it_200_ms), do: 0b001
+  defp int_time(:it_300_ms), do: 0b010
+  defp int_time(:it_400_ms), do: 0b011
+  defp int_time(:it_500_ms), do: 0b100
+  defp int_time(:it_600_ms), do: 0b101
+  defp int_time(:it_default), do: 0b000
   defp shutdown(true), do: 1
   defp shutdown(_), do: 0
   defp interrupt(true), do: 1
@@ -65,30 +63,30 @@ defmodule TSL25911FN.Config do
   # the nerves_code/veml6030/lib/veml6030/config.ex file in the
   # https://github.com/akoutmos/nerves_weather_station repo.
   @to_lumens_factor %{
-    {:it_800_ms, :gain_2x} => 0.0036,
-    {:it_800_ms, :gain_1x} => 0.0072,
-    {:it_800_ms, :gain_1_4th} => 0.0288,
-    {:it_800_ms, :gain_1_8th} => 0.0576,
-    {:it_400_ms, :gain_2x} => 0.0072,
-    {:it_400_ms, :gain_1x} => 0.0144,
-    {:it_400_ms, :gain_1_4th} => 0.0576,
-    {:it_400_ms, :gain_1_8th} => 0.1152,
-    {:it_200_ms, :gain_2x} => 0.0144,
-    {:it_200_ms, :gain_1x} => 0.0288,
-    {:it_200_ms, :gain_1_4th} => 0.1152,
-    {:it_200_ms, :gain_1_8th} => 0.2304,
-    {:it_100_ms, :gain_2x} => 0.0288,
-    {:it_100_ms, :gain_1x} => 0.0576,
-    {:it_100_ms, :gain_1_4th} => 0.2304,
-    {:it_100_ms, :gain_1_8th} => 0.4608,
-    {:it_50_ms, :gain_2x} => 0.0576,
-    {:it_50_ms, :gain_1x} => 0.1152,
-    {:it_50_ms, :gain_1_4th} => 0.4608,
-    {:it_50_ms, :gain_1_8th} => 0.9216,
-    {:it_25_ms, :gain_2x} => 0.1152,
-    {:it_25_ms, :gain_1x} => 0.2304,
-    {:it_25_ms, :gain_1_4th} => 0.9216,
-    {:it_25_ms, :gain_1_8th} => 1.8432
+    {:it_100_ms, :low} => 0.0288,
+    {:it_100_ms, :med} => 0.0576,
+    {:it_100_ms, :high} => 0.2304,
+    {:it_100_ms, :max} => 0.4608,
+    {:it_200_ms, :low} => 0.0144,
+    {:it_200_ms, :med} => 0.0288,
+    {:it_200_ms, :high} => 0.1152,
+    {:it_200_ms, :max} => 0.2304,
+    {:it_300_ms, :low} => 0.0108,
+    {:it_300_ms, :med} => 0.0216,
+    {:it_300_ms, :high} => 0.0864,
+    {:it_300_ms, :max} => 0.1728,
+    {:it_400_ms, :low} => 0.0072,
+    {:it_400_ms, :med} => 0.0144,
+    {:it_400_ms, :high} => 0.0576,
+    {:it_400_ms, :max} => 0.1152,
+    {:it_500_ms, :low} => 0.0063,
+    {:it_500_ms, :med} => 0.0126,
+    {:it_500_ms, :high} => 0.0504,
+    {:it_500_ms, :max} => 0.1008,
+    {:it_600_ms, :low} => 0.0054,
+    {:it_600_ms, :med} => 0.0108,
+    {:it_600_ms, :high} => 0.0432,
+    {:it_600_ms, :max} => 0.0864
   }
 
   # def to_lumens(config, measurement) do
