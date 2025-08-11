@@ -18,6 +18,10 @@ defmodule TSL25911FN do
     GenServer.call(__MODULE__, :get_measurement)
   end
 
+  def measure do
+    GenServer.call(__MODULE__, :measure)
+  end
+
   @doc """
   Starts the TSL25911FN GenServer with the given options. It will start the and then set an interval to
   read and then log the light reading every second.
@@ -34,13 +38,28 @@ defmodule TSL25911FN do
       |> Config.new()
 
     Comm.write_config(config, i2c, address)
-    :timer.send_interval(1_000, :measure)
+
+    # Calculate integration time in milliseconds (example mapping)
+    integration_ms =
+      case config.int_time do
+        :it_100_ms -> 100
+        :it_200_ms -> 200
+        :it_300_ms -> 300
+        :it_400_ms -> 400
+        :it_500_ms -> 500
+        :it_600_ms -> 600
+        _ -> 100
+      end
+
+    # Schedule first measure after integration time
+    Process.send_after(self(), :measure, integration_ms)
 
     state = %{
       i2c: i2c,
       address: address,
       config: config,
-      last_reading: :no_reading
+      last_reading: :no_reading,
+      integration_ms: integration_ms
     }
 
     {:ok, state}
@@ -61,20 +80,32 @@ defmodule TSL25911FN do
   end
 
   @doc """
-  This are set to take the last reading froom the sensor, then update the reading with the new reading and
-  appening it to the state.
+  This are set to take the last reading from the sensor, then update the reading with the new reading and
+  appending it to the state.
   """
-  @impl true
-  def handle_info(:measure, %{i2c: i2c, address: address, config: config} = state) do
-    last_reading = Comm.read(i2c, address, config)
-    updated_with_reading = %{state | last_reading: last_reading}
+@impl true
+def handle_info(:measure, %{i2c: i2c, address: address, config: config, integration_ms: integration_ms} = state) do
+  last_reading = Comm.read(i2c, address, config)
+  updated_state = %{state | last_reading: last_reading}
 
-    {:noreply, updated_with_reading}
-  end
+  # schedule next measurement after integration_ms milliseconds
+  Process.send_after(self(), :measure, integration_ms)
+
+  {:noreply, updated_state}
+end
+
 
   @doc """
-  This is for calling the GenServer to get the last reading from the sensor.
+  This is called when the GenServer is asked to measure the light level.
+  It reads the sensor and returns the last reading.
   """
+  @impl true
+  def handle_call(:measure, _from, %{i2c: i2c, address: address} = state) do
+    last_reading = Comm.read_raw(i2c, address)
+    state = %{state | last_reading: last_reading}
+    {:reply, state.last_reading, state}
+  end
+
   @impl true
   def handle_call(:get_measurement, _from, state) do
     {:reply, state.last_reading, state}

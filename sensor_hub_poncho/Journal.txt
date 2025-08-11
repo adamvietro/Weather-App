@@ -740,7 +740,18 @@ Chapter 3 Aggregating Sensor Data (29)
             end
 
         TSL25911FN.ex
-            Very little changed here as all the changes were just changing the VEML6030 to TSL25911FN. Once that was done all you have to do is use the exisiting code.
+            Very little changed here as all the changes were just changing the VEML6030 to TSL25911FN. Once that was done all you have to do is use the exisiting code. However the book didn't have the correct line for the resend of the update so I had to add that in.
+
+            @impl true
+                def handle_info(:measure, %{i2c: i2c, address: address, config: config, integration_ms: integration_ms} = state) do
+                last_reading = Comm.read(i2c, address, config)
+                updated_state = %{state | last_reading: last_reading}
+
+                # schedule next measurement after integration_ms milliseconds
+                Process.send_after(self(), :measure, integration_ms)
+
+                {:noreply, updated_state}
+            end
 
 
         TSL25911FN/mix.exs
@@ -762,5 +773,24 @@ Chapter 3 Aggregating Sensor Data (29)
         alias TSL25911FN, as: TSL 
         TSL.start_link()
         TSL.get_measurement()
+        TSL.measure()
+        TSL.get_measurement()
+
+    So this below works Ive been trying to make it work for the code that I have.
+        import Bitwise
+        {:ok, i2c} = Circuits.I2C.open("i2c-1")
+        sensor = 0x29
+
+        # Enable sensor: power on + ALS enable
+        Circuits.I2C.write(i2c, sensor, <<0x80 ||| 0x00, 0x03>>)
+
+        # Set integration time and gain (example values)
+        Circuits.I2C.write(i2c, sensor, <<0x80 ||| 0x01, 0x10>>) 
+
+        :timer.sleep(500)
+
+        # Read raw ADC channels
+        <<ch0::little-16, ch1::little-16>> = Circuits.I2C.write_read!(i2c, sensor, <<0x80 ||| 0x14>>, 4)
+        IO.puts("CH0: #{ch0}, CH1: #{ch1}")
 
     Build the Firmware Project (38)

@@ -12,33 +12,17 @@ defmodule TSL25911FN.Config do
     struct(__MODULE__, opts)
   end
 
-  # This is the version of the to_integer function that we will use for the VEML6030 sensor.
-  # We don't have that.
-  # def to_integer(config) do
-  #   reserved = 0
-  #   persistence_protect = 0
-
-  #   <<integer::16>> = <<
-  #     reserved::3,
-  #     gain(config.gain)::2,
-  #     reserved::1,
-  #     int_time(config.int_time)::4,
-  #     persistence_protect::2,
-  #     reserved::2,
-  #     interrupt(config.interrupt)::1,
-  #     shutdown(config.shutdown)::1
-  #   >>
-
-  #   integer
-  # end
-
-  # We will need to use an other version of hte to_integer function
   def to_control_byte(%__MODULE__{gain: gain, int_time: int_time}) do
     gain(gain) <<< 4 ||| int_time(int_time)
   end
 
   def to_enable_byte(%__MODULE__{shutdown: shutdown, interrupt: interrupt}) do
-    interrupt(interrupt) <<< 4 ||| 1 <<< 1 ||| shutdown(shutdown)
+    interrupt_bit = interrupt(interrupt) <<< 4
+    als_enable_bit = 1 <<< 1
+    power_on_bit = 1 <<< 0
+    shutdown_bit = shutdown(shutdown)
+
+    interrupt_bit ||| als_enable_bit ||| power_on_bit ||| shutdown_bit
   end
 
   defp gain(:low), do: 0b00
@@ -88,10 +72,6 @@ defmodule TSL25911FN.Config do
     {:it_600_ms, :high} => 0.0432,
     {:it_600_ms, :max} => 0.0864
   }
-
-  # def to_lumens(config, measurement) do
-  #   @to_lumens_factor[{config.int_time, config.gain}] * measurement
-  # end
 
   def to_lumens(%{int_time: it, gain: gain}, ch0, ch1) do
     key = {it, gain}

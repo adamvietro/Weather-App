@@ -9,7 +9,7 @@ defmodule TSL25911FN.Comm do
   @control_register 0x01
   @als_data_register 0x14
 
-  def discover(possible_addresses \\ [0x10, 0x29]) do
+  def discover(possible_addresses \\ [0x29]) do
     I2C.discover_one!(possible_addresses)
   end
 
@@ -35,5 +35,13 @@ defmodule TSL25911FN.Comm do
       I2C.write_read!(i2c, sensor, <<@command_bit ||| @als_data_register>>, 4)
 
     Config.to_lumens(config, ch0, ch1)
+  end
+
+  def read_raw(i2c, sensor) do
+    # Read 4 bytes from ALS data registers (low and high) with command bit set
+    <<ch0::little-16, ch1::little-16>> =
+      I2C.write_read!(i2c, sensor, <<0x80 ||| 0x14>>, 4)
+
+    {ch0, ch1}
   end
 end
