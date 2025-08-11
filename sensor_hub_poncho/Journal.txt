@@ -671,10 +671,51 @@ Chapter 3 Aggregating Sensor Data (29)
                 (interrupt_bit <<< 4) ||| (1 <<< 1) ||| shutdown_bit
             end
 
-            defp gain(:gain_1x), do: 0b00
-            defp gain(:gain_2x), do: 0b01
+            defp gain(:low), do: 0b00
+            defp gain(:med), do: 0b01
+            defp gain(:high), do: 0b10
+            defp gain(:max), do: 0b11
+            defp gain(:gain_default), do: 0b11
+
+            defp int_time(:it_100_ms), do: 0b000
+            defp int_time(:it_200_ms), do: 0b001
+            defp int_time(:it_300_ms), do: 0b010
+            defp int_time(:it_400_ms), do: 0b011
+            defp int_time(:it_500_ms), do: 0b100
+            defp int_time(:it_600_ms), do: 0b101
+            defp int_time(:it_default), do: 0b000
+
+            @to_lumens_factor %{
+                {:it_100_ms, :low} => 0.0288,
+                {:it_100_ms, :med} => 0.0576,
+                {:it_100_ms, :high} => 0.2304,
+                {:it_100_ms, :max} => 0.4608,
+                {:it_200_ms, :low} => 0.0144,
+                {:it_200_ms, :med} => 0.0288,
+                {:it_200_ms, :high} => 0.1152,
+                {:it_200_ms, :max} => 0.2304,
+                {:it_300_ms, :low} => 0.0108,
+                {:it_300_ms, :med} => 0.0216,
+                {:it_300_ms, :high} => 0.0864,
+                {:it_300_ms, :max} => 0.1728,
+                {:it_400_ms, :low} => 0.0072,
+                {:it_400_ms, :med} => 0.0144,
+                {:it_400_ms, :high} => 0.0576,
+                {:it_400_ms, :max} => 0.1152,
+                {:it_500_ms, :low} => 0.0063,
+                {:it_500_ms, :med} => 0.0126,
+                {:it_500_ms, :high} => 0.0504,
+                {:it_500_ms, :max} => 0.1008,
+                {:it_600_ms, :low} => 0.0054,
+                {:it_600_ms, :med} => 0.0108,
+                {:it_600_ms, :high} => 0.0432,
+                {:it_600_ms, :max} => 0.0864
+            }     
 
         comm.ex
+            import Bitwise
+
+            @command_bit 0x80
             @enable_register 0x00
             @control_register 0x01
             @als_data_register 0x14
@@ -683,11 +724,11 @@ Chapter 3 Aggregating Sensor Data (29)
                 enable_byte = Config.to_enable_byte(config)
                 control_byte = Config.to_control_byte(config)
 
-                # Write ENABLE register (1 byte)
-                I2C.write(i2c, sensor, <<@enable_register, enable_byte>>)
+                # Write ENABLE register (1 byte) with command bit set
+                I2C.write(i2c, sensor, <<@command_bit ||| @enable_register, enable_byte>>)
 
-                # Write CONTROL register (1 byte)
-                I2C.write(i2c, sensor, <<@control_register, control_byte>>)
+                # Write CONTROL register (1 byte) with command bit set
+                I2C.write(i2c, sensor, <<@command_bit ||| @control_register, control_byte>>)
             end
 
             def read(i2c, sensor, config) do
@@ -717,9 +758,9 @@ Chapter 3 Aggregating Sensor Data (29)
         sensor_hub/mix.exs
             {:TSL25911FN, path: "../TSL25911FN", targets: @all_targets},
 
-        
-
-
-
+    With all this done you can run.
+        alias TSL25911FN, as: TSL 
+        TSL.start_link()
+        TSL.get_measurement()
 
     Build the Firmware Project (38)

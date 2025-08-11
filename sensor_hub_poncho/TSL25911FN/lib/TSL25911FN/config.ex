@@ -1,7 +1,7 @@
 defmodule TSL25911FN.Config do
   import Bitwise
 
-  defstruct gain: :gain_1_4th,
+  defstruct gain: :max,
             int_time: :it_100_ms,
             shutdown: false,
             interrupt: false

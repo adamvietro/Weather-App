@@ -21,6 +21,8 @@ defmodule TSL25911FN do
   @doc """
   Starts the TSL25911FN GenServer with the given options. It will start the and then set an interval to
   read and then log the light reading every second.
+
+  The second init function is used to discover the sensor on the I2C bus if no address is provided.
   """
   @impl true
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
@@ -44,10 +46,6 @@ defmodule TSL25911FN do
     {:ok, state}
   end
 
-  @doc """
-  Starts the TSL25911FN GenServer with the default configuration. This is for when you don't
-  have the correct bus and address set.
-  """
   def init(args) do
     {bus_name, address} = Comm.discover()
     transport = "bus: #{bus_name}, address: #{address}"
