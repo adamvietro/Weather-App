@@ -794,3 +794,21 @@ Chapter 3 Aggregating Sensor Data (29)
         IO.puts("CH0: #{ch0}, CH1: #{ch1}")
 
     Build the Firmware Project (38)
+        You will want to have a config files for each of your differnt sensors or pi's that you will deploy. In the end you will do most of the work withing an aplication.ex. Other than that you will want to figure the config.ex and then the mix.ex to ensure that you have the right dependencies.
+
+        sensor_hub will handle dependencies, manage configuration, provide the glue code, and implement the life cycle of the project you will need to:
+            Add the path and hex dependencies
+            Provide the configuration for the project
+            Create a sensor wrapper so each sensor have a uniform interface in lib/sensor_hub/sensor.ex
+            Start each of the sensor dependencies and the HTTP data publisher
+
+        Configure the Name
+            Lets name the of the project:
+                sensor_hub/config/targets.exs
+                config :mdns_lite,
+                ...comments...
+            host: [:hostname, "hub"]
+
+            Before when we would nerves.local it was because of this line here not we can hub.local
+
+        Include Dependencies for Sensors
