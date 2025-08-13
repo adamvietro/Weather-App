@@ -1,4 +1,4 @@
-defmodule Ltr390.MixProject do
+defmodule LTR390_UV.MixProject do
   use Mix.Project
 
   def project do
