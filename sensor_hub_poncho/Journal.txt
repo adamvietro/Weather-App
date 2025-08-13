@@ -812,3 +812,6 @@ Chapter 3 Aggregating Sensor Data (29)
             Before when we would nerves.local it was because of this line here not we can hub.local
 
         Include Dependencies for Sensors
+            Now we need to include the right dependencies for the other sensors that we have on the hat. In the book they talk about using some predefined libs :bmp280 and :sgp30 which will take some the needed functions in order to use the sensors. I might need to define my own but Ill see about using some libs if I can find them.
+
+            In order to make this work with the current settings I will write my own conn.ex, config.ex and sensor_name.ex files. Keep in mind you will need to add in the dependencies to the sensor hub after you make them in order to add them to the Supervisor tree.
