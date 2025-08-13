@@ -35,11 +35,12 @@ defmodule LTR390_UV.Comm do
     I2C.write(i2c, sensor, <<@command_bit ||| @gain_register, gain_byte>>)
   end
 
-  def read(i2c, sensor, %Config{uvs_als: :uvs} = _config) do
+  def read(i2c, sensor, %Config{uvs_als: :uvs} = config) do
     <<low, mid, high>> =
       I2C.write_read!(i2c, sensor, <<@command_bit ||| hd(@uvs_data_register)>>, 3)
 
-    low ||| mid <<< 8 ||| high <<< 16
+    raw = low ||| mid <<< 8 ||| high <<< 16
+    Config.uvs_to_uvi(config, raw)
   end
 
   def read(i2c, sensor, %Config{uvs_als: :als} = config) do
@@ -48,6 +49,6 @@ defmodule LTR390_UV.Comm do
 
     # Convert using ALS formula when you fix it
     raw = low ||| mid <<< 8 ||| high <<< 16
-    Config.to_lumens(config, raw)
+    Config.als_to_lux(config, raw, 0)
   end
 end
