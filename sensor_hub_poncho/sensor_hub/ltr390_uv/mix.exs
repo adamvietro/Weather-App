@@ -3,7 +3,7 @@ defmodule Ltr390.MixProject do
 
   def project do
     [
-      app: :ltr390,
+      app: :LTR390_UV,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
