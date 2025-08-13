@@ -770,6 +770,9 @@ Chapter 3 Aggregating Sensor Data (29)
             {:TSL25911FN, path: "../TSL25911FN", targets: @all_targets},
 
     With all this done you can run.
+        ./upload.sh 192.168.x.x
+        ssh 192.168.x.x
+
         alias TSL25911FN, as: TSL 
         TSL.start_link()
         TSL.get_measurement()
@@ -1061,6 +1064,15 @@ Chapter 3 Aggregating Sensor Data (29)
                     Circuits.I2C.close(i2c)
                     :ok
                 end
+
+            To test run this:
+                ./upload.sh 192.168.x.x
+                ssh 192.168.x.x
+
+                alias LTR390_UV, as: LTR 
+                LTR.start_link()
+                LTR.get_measurement()
+                LTR.measure()
 
             I plan on finishing all the other sensors at some point and will be adding in the libs to gihub after I finish each one.            
 

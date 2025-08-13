@@ -1,9 +1,9 @@
-defmodule LTR390_UV.MixProject do
+defmodule TSL25911FN.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :LTR390_UV,
+      app: :tsl25911fn,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -21,8 +21,7 @@ defmodule LTR390_UV.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:circuits_i2c, "~> 1.0"},
-      {:mox, "~> 1.0", only: :test}
+     {:circuits_i2c, "~> 1.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
