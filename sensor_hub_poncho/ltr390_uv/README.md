@@ -1,71 +1,78 @@
 # LTR390_UV Elixir Module
 
-This Elixir module allows you to interface with the **LTR390 UV/ALS sensor** over I2C, read raw and scaled UV and ambient light (ALS) values, and convert them to UV index and lux.
-
----
+**LTR390_UV** is an Elixir module for interfacing with the **LTR390 UV and Ambient Light Sensor** over I2C. It allows you to read **raw UV and ALS values**, convert them to **UV Index and Lux**, and configure the sensor's gain, resolution, and measurement rate.
 
 ## Features
-
-- Configure the sensor’s resolution, measurement rate, gain, and mode (ALS or UVS)  
-- Read raw sensor counts for UV and ALS  
-- Convert raw counts to **UV index** and **lux** using standard formulas  
-- Works with `Circuits.I2C` on Raspberry Pi and other compatible boards  
-
----
+- Configure **gain**, **resolution**, and **measurement rate**
+- Read **raw ALS and UVS values**
+- Convert raw counts to **UV Index** and **Lux**
+- Works with **Circuits.I2C** on Raspberry Pi or other compatible boards
 
 ## Installation
+Add `circuits_i2c` to your dependencies in `mix.exs`:
 
-Add the module to your project and ensure `circuits_i2c` is added to your `mix.exs` dependencies:
-
+```elixir
 defp deps do
   [
     {:circuits_i2c, "~> 1.0"}
   ]
 end
+```
 
-Then run:
+Then fetch dependencies:
 
+```bash
 mix deps.get
+```
 
----
+Copy the `LTR390_UV` module files into your project.
 
 ## Usage
 
-### Start the sensor
+### Start the Sensor
 
+```elixir
 alias LTR390_UV, as: LTR
-
 {:ok, _pid} = LTR.start_link()
+```
 
-### Get measurements
+### Get Measurements
 
-# Get scaled values
-{lux, uv_index} = LTR.get_measurement()
-IO.puts("Ambient Light (lux): #{lux}")
+```elixir
+{uv_index, lux} = LTR.get_measurement()
 IO.puts("UV Index: #{uv_index}")
+IO.puts("Ambient Light (lux): #{lux}")
+```
 
-### Example Output
+Example Output:
 
-{0.0, 18.4}      # Low light / low UV
-{0.02, 295.6}    # Slightly brighter UV reading
+```
+UV Index: 0.02
+Ambient Light (lux): 295.6
+```
 
-### Configure sensor
+### Configure Sensor
 
-You can adjust the `Config` struct to change resolution, gain, measurement rate, and mode:
-
-config = LTR390_UV.Config.new(gain: :med, measure_rate: :measure_rate_100_ms, uvs_als: :uvs)
+```elixir
+config = LTR390_UV.Config.new(
+  gain: :high,
+  resolution: :res_18bit,
+  measure_rate: :measure_rate_100_ms,
+  uvs_als: :uvs
+)
 LTR.write_config(config)
+```
 
----
+### Using Raw Reads
+
+```elixir
+i2c = LTR390_UV.Comm.open("i2c-1")
+sensor = LTR390_UV.Comm.discover()
+raw_als = LTR390_UV.Comm.read(i2c, sensor, %LTR390_UV.Config{uvs_als: :als})
+raw_uvs = LTR390_UV.Comm.read(i2c, sensor, %LTR390_UV.Config{uvs_als: :uvs})
+```
 
 ## Notes
-
-- Ensure your I2C bus is enabled on your board (e.g., `i2c-1` on Raspberry Pi)  
-- Wait at least the measurement time between readings (default 100ms) for accurate data  
-- Raw readings can be accessed before conversion if needed for debugging  
-
----
-
-## License
-
-This code is released under the MIT License.
+- Ensure your sensor has enough time between measurements according to the **measure_rate**.
+- Raw counts can be converted to standard units using `LTR390_UV.Config.als_to_lux/3` and `LTR390_UV.Config.uvs_to_uvi/3`.
+- Works on Raspberry Pi and other boards compatible with I2C and `Circuits.I2C`.
