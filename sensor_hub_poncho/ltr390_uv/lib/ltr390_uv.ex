@@ -116,6 +116,9 @@ defmodule LTR390_UV do
     # Write new config to switch sensor mode
     Comm.write_config(new_config, i2c, address)
 
+    # Wait a few moments to let the sensor change
+    Process.sleep(measure_rate)
+
     # Schedule next measurement after full measure_rate
     Process.send_after(self(), :measure, measure_rate)
 

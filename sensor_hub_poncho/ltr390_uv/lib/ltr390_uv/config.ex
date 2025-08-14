@@ -52,13 +52,12 @@ defmodule LTR390_UV.Config do
   end
 
   def to_enable_byte(%__MODULE__{uvs_als: uvs_als, reset: reset}) do
-    reset_bit_rate = reset(reset) <<< 4
-    uvs_als_bit_rate = uvs_als(uvs_als) <<< 3
-    enable_bit_rate = 1 <<< 1
-    reserve_bit_rate = 1 <<< 0
+    reset_bit = reset(reset) <<< 4
+    uvs_als_bit = uvs_als(uvs_als) <<< 3
+    enable_bit = 1 <<< 1
+    reserve_bit = 1 <<< 0
 
-    reset_bit_rate ||| uvs_als_bit_rate ||| enable_bit_rate |||
-      reserve_bit_rate
+    reset_bit ||| uvs_als_bit ||| enable_bit ||| reserve_bit
   end
 
   defp integration_time_ms(:measure_rate_25_ms), do: 25

@@ -4,7 +4,6 @@ defmodule LTR390_UV.Comm do
 
   import Bitwise
 
-  @command_bit 0x80
   @enable_register 0x00
   @gain_register 0x05
   @control_register 0x04
@@ -26,29 +25,53 @@ defmodule LTR390_UV.Comm do
     gain_byte = Config.to_gain_byte(config)
 
     # Write ENABLE register (1 byte) with command bit set
-    I2C.write(i2c, sensor, <<@command_bit ||| @enable_register, enable_byte>>)
+    I2C.write(i2c, sensor, <<@enable_register, enable_byte>>)
 
     # Write CONTROL register (1 byte) with command bit set
-    I2C.write(i2c, sensor, <<@command_bit ||| @control_register, control_byte>>)
+    I2C.write(i2c, sensor, <<@control_register, control_byte>>)
 
     # Write the GAIN register
-    I2C.write(i2c, sensor, <<@command_bit ||| @gain_register, gain_byte>>)
+    I2C.write(i2c, sensor, <<@gain_register, gain_byte>>)
   end
 
   def read(i2c, sensor, %Config{uvs_als: :uvs} = config) do
     <<low, mid, high>> =
-      I2C.write_read!(i2c, sensor, <<@command_bit ||| hd(@uvs_data_register)>>, 3)
+      I2C.write_read!(i2c, sensor, <<hd(@uvs_data_register)>>, 3)
 
-    raw = low ||| mid <<< 8 ||| high <<< 16
+    raw = high <<< 16 ||| mid <<< 8 ||| low
     Config.uvs_to_uvi(config, raw)
   end
 
   def read(i2c, sensor, %Config{uvs_als: :als} = config) do
     <<low, mid, high>> =
-      I2C.write_read!(i2c, sensor, <<@command_bit ||| hd(@als_data_register)>>, 3)
+      I2C.write_read!(i2c, sensor, <<hd(@als_data_register)>>, 3)
 
     # Convert using ALS formula when you fix it
-    raw = low ||| mid <<< 8 ||| high <<< 16
-    Config.als_to_lux(config, raw, 0)
+    raw = high <<< 16 ||| mid <<< 8 ||| low
+    Config.als_to_lux(config, raw)
   end
+
+  # def read(i2c, sensor, %Config{uvs_als: :uvs} = config) do
+  #   try do
+  #     <<low, mid, high>> =
+  #       I2C.write_read!(i2c, sensor, <<hd(@uvs_data_register)>>, 3)
+
+  #     raw = high <<< 16 ||| mid <<< 8 ||| low
+  #     Config.uvs_to_uvi(config, raw)
+  #   rescue
+  #     e -> {:error, e}
+  #   end
+  # end
+
+  # def read(i2c, sensor, %Config{uvs_als: :als} = config) do
+  #   try do
+  #     <<low, mid, high>> =
+  #       I2C.write_read!(i2c, sensor, <<hd(@als_data_register)>>, 3)
+
+  #     raw = high <<< 16 ||| mid <<< 8 ||| low
+  #     Config.als_to_lux(config, raw, 0)
+  #   rescue
+  #     e -> {:error, e}
+  #   end
+  # end
 end
