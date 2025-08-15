@@ -6,6 +6,7 @@ defmodule Bme280 do
   alias Bme280.Comm
   alias Bme280.Calibration
   alias Bme280.Config
+  alias Bme280.Converter
 
   @moduledoc """
   Documentation for `Bme280` Temperature, Humidity, and Pressure sensor. It
@@ -24,6 +25,10 @@ defmodule Bme280 do
 
   def read_calibration() do
     GenServer.call(__MODULE__, :read_calibration)
+  end
+
+  def read_raw() do
+    GenServer.call(__MODULE__, :read_raw)
   end
 
   @impl true
@@ -71,18 +76,27 @@ defmodule Bme280 do
   end
 
   @impl true
-  def handle_info(:measure, %{i2c: i2c, address: address, integration_ms: ms} = state) do
+  def handle_info(
+        :measure,
+        %{i2c: i2c, address: address, integration_ms: ms, calibration: calibration} = state
+      ) do
     raw = Comm.read(i2c, address)
+
+    converted = Converter.convert(raw, calibration)
 
     # Schedule next measurement
     Process.send_after(self(), :measure, ms)
 
-    {:noreply, %{state | last_raw_reading: raw}}
+    {:noreply, %{state | last_raw_reading: raw, last_reading: converted}}
   end
 
   @impl true
   def handle_call(:read, _from, state) do
-    {:reply, %{last_reading: state.last_reading, raw_reading: state.last_raw_reading}, state}
+    {:reply, %{last_reading: state.last_reading}, state}
+  end
+
+  def handle_call(:read_raw, _from, state) do
+    {:reply, state.last_raw_reading, state}
   end
 
   @impl true
