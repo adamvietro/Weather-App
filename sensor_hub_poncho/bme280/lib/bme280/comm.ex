@@ -26,6 +26,8 @@ defmodule Bme280.Comm do
     # Write CTRL_HUM register (1 byte)
     I2C.write(i2c, sensor, <<@ctrl_hum, ctrl_hum_byte>>)
 
+    :timer.sleep(100)  # Small delay to ensure the sensor is ready
+
     # Write CTRL_MEAS register (1 byte)
     I2C.write(i2c, sensor, <<@ctrl_meas, ctrl_meas_byte>>)
 

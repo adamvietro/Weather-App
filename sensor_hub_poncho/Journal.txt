@@ -1057,6 +1057,42 @@ Build all the Sensor Config and Comm. (38)
         LTR.get_measurement()
         LTR.measure()
 
+    BME280 (Humidity, Temperature, Air Pressure)
+        Don't forget to add the {:circuits_i2c, "~> 1.1"} to the BME280 project and then add the :Bme280 to the sensor_but mix.exs
+
+    Config
+
+    comm.ex
+
+    config.ex
+
+    bme280.ex
+
+    export MIX_TARGET=rpi3a
+    ./upload.sh 192.168.x.x
+    ssh 192.168.x.x
+
+
+    If you want to just test the comm.ex and config.ex
+    alias Bme280.Comm
+    alias Bme280.Config
+
+    bus_name = "i2c-1"          # or whatever your I²C bus is
+    {_bus, sensor} = Comm.discover()     # returns 0x76 (the sensor address)
+
+    i2c = Comm.open(bus_name)    # open the bus
+    config = Config.new()        # default config
+
+    Comm.write_config(config, i2c, sensor)  # write config
+    Comm.read(i2c, sensor)                  # read raw values
+
+    if you want to test the GenServer on Bme280.ex
+    alias BME280, as: BME
+    BME.start_link()
+    BME.read()
+    BME.read_calibration()
+
+
     I plan on finishing all the other sensors at some point and will be adding in the libs to gihub after I finish each one.      
 
 

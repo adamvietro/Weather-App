@@ -84,4 +84,39 @@ defmodule Bme280.Config do
   defp mode_to_bit(:normal), do: 0b00
   defp mode_to_bit(:forced), do: 0b01
   defp mode_to_bit(:sleep), do: 0b10
+
+  @doc """
+  This will be responsible for calculating the integration time in milliseconds.
+  """
+  @spec integration_ms(%__MODULE__{}) :: non_neg_integer()
+  def integration_ms(%__MODULE__{
+        mode: mode,
+        osrs_t: osrs_t,
+        osrs_p: osrs_p,
+        osrs_h: osrs_h
+      }) do
+    # Convert oversampling atoms to numbers
+    t = osrs_to_ms(osrs_t)
+    p = osrs_to_ms(osrs_p)
+    h = osrs_to_ms(osrs_h)
+
+    # base measurement overhead in ms
+    base = 1
+
+    time =
+      case mode do
+        :forced -> t + p + h + base
+        :normal -> t + p + h + base
+        :sleep -> 0
+      end
+
+    time
+  end
+
+  defp osrs_to_ms(:osrs_skip), do: 0
+  defp osrs_to_ms(:osrs_1x), do: 1
+  defp osrs_to_ms(:osrs_2x), do: 2
+  defp osrs_to_ms(:osrs_4x), do: 4
+  defp osrs_to_ms(:osrs_8x), do: 8
+  defp osrs_to_ms(:osrs_16x), do: 16
 end
