@@ -7,6 +7,7 @@ defmodule Bme280.Comm do
   @ctrl_hum 0xF2
   @ctrl_meas 0xF4
   @config_register 0xF5
+  @data_register 0xF7
 
   def discover(possible_addresses \\ [0x76]) do
     I2C.discover_one!(possible_addresses)
@@ -35,8 +36,14 @@ defmodule Bme280.Comm do
   @doc """
   Still need to configure this but I think that we have something to start.
   """
-  def read_config(i2c, sensor) do
-    I2C.write(i2c, sensor, <<@config_register, 0x00>>)
-    I2C.read(i2c, sensor, 1)
+  def read(i2c, sensor) do
+    <<press_msb, press_lsb, press_xlsb, temp_msb, temp_lsb, temp_xlsb, hum_msb, hum_lsb>> =
+      I2C.write_read!(i2c, sensor, <<@data_register>>, 8)
+
+    combined_pressure = (press_msb <<< 12) ||| (press_lsb <<< 4) ||| (press_xlsb >>> 4)
+    combined_temperature = (temp_msb <<< 12) ||| (temp_lsb <<< 4) ||| (temp_xlsb >>> 4)
+    combined_humidity = (hum_msb <<< 8) ||| hum_lsb
+
+    {combined_pressure, combined_temperature, combined_humidity}
   end
 end
