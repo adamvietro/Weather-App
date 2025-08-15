@@ -1087,10 +1087,9 @@ Build all the Sensor Config and Comm. (38)
     Comm.read(i2c, sensor)                  # read raw values
 
     if you want to test the GenServer on Bme280.ex
-    alias BME280, as: BME
-    BME.start_link()
-    BME.read()
-    BME.read_calibration()
+    BME280.start_link()
+    BME280.read()
+    BME280.read_calibration()
 
 
     I plan on finishing all the other sensors at some point and will be adding in the libs to gihub after I finish each one.      

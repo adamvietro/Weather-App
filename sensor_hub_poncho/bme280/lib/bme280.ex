@@ -5,6 +5,7 @@ defmodule Bme280 do
 
   alias Bme280.Comm
   alias Bme280.Calibration
+  alias Bme280.Config
 
   @moduledoc """
   Documentation for `Bme280` Temperature, Humidity, and Pressure sensor. It
