@@ -1068,6 +1068,10 @@ Build all the Sensor Config and Comm. (38)
 
     bme280.ex
 
+    calibration.ex
+
+    converter.ex
+
     export MIX_TARGET=rpi3a
     ./upload.sh 192.168.x.x
     ssh 192.168.x.x
@@ -1087,9 +1091,9 @@ Build all the Sensor Config and Comm. (38)
     Comm.read(i2c, sensor)                  # read raw values
 
     if you want to test the GenServer on Bme280.ex
-    BME280.start_link()
-    BME280.read()
-    BME280.read_calibration()
+    Bme280.start_link()
+    Bme280.read()
+    Bme280.read_calibration()
 
 
     I plan on finishing all the other sensors at some point and will be adding in the libs to gihub after I finish each one.      

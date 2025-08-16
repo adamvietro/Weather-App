@@ -15,12 +15,18 @@ defmodule Bme280 do
   for accurate readings.
   """
 
+  @integration_time 1000
+
   def start_link(options \\ %{}) do
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
   end
 
   def read() do
-    GenServer.call(__MODULE__, :read)
+    GenServer.cast(__MODULE__, :read)
+  end
+
+  def get_measurement(pressure_unit \\ :pa) do
+    GenServer.call(__MODULE__, {:get_measurement, pressure_unit})
   end
 
   def read_calibration() do
@@ -31,6 +37,14 @@ defmodule Bme280 do
     GenServer.call(__MODULE__, :read_raw)
   end
 
+  def measure_now() do
+    GenServer.call(__MODULE__, :measure_now)
+  end
+
+  @doc """
+  Initiates the basic settings for the BME280 sensor. The standards can be set within the
+  config.ex.
+  """
   @impl true
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
     i2c = Comm.open(bus_name)
@@ -46,7 +60,7 @@ defmodule Bme280 do
     integration_ms = Config.integration_ms(config)
 
     # Schedule first measure after integration time
-    Process.send_after(self(), :measure, integration_ms)
+    Process.send_after(self(), :read, @integration_time)
 
     state = %{
       i2c: i2c,
@@ -76,25 +90,24 @@ defmodule Bme280 do
   end
 
   @impl true
-  def handle_info(
-        :measure,
-        %{i2c: i2c, address: address, integration_ms: ms, calibration: calibration} = state
-      ) do
-    raw = Comm.read(i2c, address)
+  def handle_cast(:read, %{i2c: i2c, address: address, calibration: calibration} = state) do
+    last_reading = Comm.read(i2c, address)
+    last_reading = Converter.convert(last_reading, calibration)
+    updated_state = %{state | last_reading: last_reading}
 
-    converted = Converter.convert(raw, calibration)
+    IO.inspect(updated_state.last_reading, label: "BME280 Reading")
 
-    # Schedule next measurement
-    Process.send_after(self(), :measure, ms)
+    Process.send_after(self(), :read, @integration_time)
 
-    {:noreply, %{state | last_raw_reading: raw, last_reading: converted}}
+    {:noreply, updated_state}
   end
 
   @impl true
-  def handle_call(:read, _from, state) do
-    {:reply, %{last_reading: state.last_reading}, state}
+  def handle_call({:get_measurement, pressure_unit}, _from, state) do
+    {:reply, %{last_reading: convert_pressure_units(state.last_reading, pressure_unit)}, state}
   end
 
+  @impl true
   def handle_call(:read_raw, _from, state) do
     {:reply, state.last_raw_reading, state}
   end
@@ -103,4 +116,36 @@ defmodule Bme280 do
   def handle_call(:read_calibration, _from, state) do
     {:reply, state.calibration, state}
   end
+
+  @impl true
+  def handle_call(
+        :measure_now,
+        _from,
+        %{i2c: i2c, address: address, calibration: cal, config: config} = state
+      ) do
+    # 1. Set sensor to forced mode
+    forced_config = %{config | mode: :forced}
+    Comm.write_config(forced_config, i2c, address)
+
+    # 2. Wait for integration time
+    :timer.sleep(Config.integration_ms(forced_config))
+
+    # 3. Read raw data
+    raw = Comm.read(i2c, address)
+
+    # 4. Convert to human-readable
+    converted = Converter.convert(raw, cal)
+
+    # 5. Update state
+    {:reply, converted,
+     %{state | last_raw_reading: raw, last_reading: converted, config: forced_config}}
+  end
+
+  defp convert_pressure_units(reading, :pa), do: reading
+
+  defp convert_pressure_units(%{pressure_pa: pa} = reading, :hpa),
+    do: %{reading | pressure_pa: pa / 100}
+
+  defp convert_pressure_units(%{pressure_pa: pa} = reading, :inhg),
+    do: %{reading | pressure_pa: pa / 3386.389}
 end

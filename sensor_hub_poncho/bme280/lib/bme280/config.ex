@@ -2,11 +2,11 @@ defmodule Bme280.Config do
   import Bitwise
 
   defstruct mode: :normal,
-            osrs_t: :osrs_1x,
-            osrs_p: :osrs_1x,
+            osrs_t: :osrs_2x,
+            osrs_p: :osrs_16x,
             osrs_h: :osrs_1x,
             standby_time: :standby_0_5_ms,
-            filter: :filter_off,
+            filter: :filter_16,
             spi3w_en: false
 
   def new, do: struct(__MODULE__)
@@ -93,24 +93,29 @@ defmodule Bme280.Config do
         mode: mode,
         osrs_t: osrs_t,
         osrs_p: osrs_p,
-        osrs_h: osrs_h
+        osrs_h: osrs_h,
+        standby_time: standby_time
       }) do
-    # Convert oversampling atoms to numbers
+    # Convert oversampling atoms to approximate times in ms
     t = osrs_to_ms(osrs_t)
     p = osrs_to_ms(osrs_p)
     h = osrs_to_ms(osrs_h)
 
-    # base measurement overhead in ms
+    # Base measurement overhead (ms)
     base = 1
 
-    time =
+    # Standby time (ms)
+    standby_ms =
       case mode do
-        :forced -> t + p + h + base
-        :normal -> t + p + h + base
-        :sleep -> 0
+        :normal -> standby_time_to_ms(standby_time)
+        _ -> 0
       end
 
-    time
+    # Total integration time
+    total = t + p + h + base + standby_ms
+
+    # Always round up to the nearest integer
+    max(1, round(total))
   end
 
   defp osrs_to_ms(:osrs_skip), do: 0
@@ -119,4 +124,13 @@ defmodule Bme280.Config do
   defp osrs_to_ms(:osrs_4x), do: 4
   defp osrs_to_ms(:osrs_8x), do: 8
   defp osrs_to_ms(:osrs_16x), do: 16
+
+  defp standby_time_to_ms(:standby_0_5_ms), do: 1
+  defp standby_time_to_ms(:standby_10_ms), do: 10
+  defp standby_time_to_ms(:standby_20_ms), do: 20
+  defp standby_time_to_ms(:standby_62_5_ms), do: 63
+  defp standby_time_to_ms(:standby_125_ms), do: 125
+  defp standby_time_to_ms(:standby_250_ms), do: 250
+  defp standby_time_to_ms(:standby_500_ms), do: 500
+  defp standby_time_to_ms(:standby_1000_ms), do: 1000
 end
