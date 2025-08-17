@@ -15,8 +15,6 @@ defmodule Bme280 do
   for accurate readings.
   """
 
-  @integration_time 1000
-
   def start_link(options \\ %{}) do
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
   end

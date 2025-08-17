@@ -42,7 +42,7 @@ defmodule Bme280.Config do
     filter_bit = filter_to_bit(filter)
     spi3w_en_bit = spi3w_en_bit(spi3w_en)
 
-    0b00000000 ||| standby_time_bit ||| filter_bit ||| spi3w_en_bit
+    0b00000000 ||| standby_time_bit <<< 5 ||| filter_bit <<< 2 ||| spi3w_en_bit
   end
 
   defp osrs_h_to_bit(:osrs_1x), do: 0b001

@@ -1,4 +1,4 @@
-defmodule Bme280.Calibration do
+defmodule Bme280.CalibrationTest do
   alias Circuits.I2C
   import Bitwise
 

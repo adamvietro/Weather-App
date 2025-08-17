@@ -15,7 +15,7 @@ defmodule Bme280.Converter do
     }
   end
 
-  defp compensate_temp(adc_T, calib) do
+  def compensate_temp(adc_T, calib) do
     var1 =
       (adc_T / 16384.0 - calib.dig_T1 / 1024.0) * calib.dig_T2
 
@@ -29,7 +29,7 @@ defmodule Bme280.Converter do
     {temperature, t_fine}
   end
 
-  defp compensate_press(adc_P, t_fine, calib) do
+  def compensate_press(adc_P, t_fine, calib) do
     var1 = t_fine / 2.0 - 64000.0
     var2 = var1 * var1 * calib.dig_P6 / 32768.0
     var2 = var2 + var1 * calib.dig_P5 * 2.0
@@ -49,7 +49,7 @@ defmodule Bme280.Converter do
     end
   end
 
-  defp compensate_hum(adc_H, t_fine, calib) do
+  def compensate_hum(adc_H, t_fine, calib) do
     h = t_fine - 76800.0
 
     h =

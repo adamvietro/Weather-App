@@ -63,3 +63,4 @@ defmodule Bme280.ConfigTest do
     end
   end
 end
+0110111
