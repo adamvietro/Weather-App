@@ -41,6 +41,15 @@ defmodule Bme280 do
     GenServer.call(__MODULE__, :measure_now)
   end
 
+  def kill(reason \\ :normal) do
+    case reason do
+      :normal -> Logger.info("Terminating BME280 sensor normally.")
+      _ -> Logger.error("Terminating BME280 sensor with reason: #{inspect(reason)}")
+    end
+
+    GenServer.cast(__MODULE__, {:kill, reason})
+  end
+
   @doc """
   Initiates the basic settings for the BME280 sensor. The standards can be set within the
   config.ex.
@@ -60,7 +69,7 @@ defmodule Bme280 do
     integration_ms = Config.integration_ms(config)
 
     # Schedule first measure after integration time
-    Process.send_after(self(), :read, @integration_time)
+    Process.send_after(self(), :read, integration_ms)
 
     state = %{
       i2c: i2c,
@@ -90,14 +99,18 @@ defmodule Bme280 do
   end
 
   @impl true
-  def handle_cast(:read, %{i2c: i2c, address: address, calibration: calibration} = state) do
+  def handle_info(
+        :read,
+        %{i2c: i2c, address: address, calibration: calibration, integration_ms: integration_ms} =
+          state
+      ) do
     last_reading = Comm.read(i2c, address)
     last_reading = Converter.convert(last_reading, calibration)
     updated_state = %{state | last_reading: last_reading}
 
-    IO.inspect(updated_state.last_reading, label: "BME280 Reading")
+    # IO.inspect(updated_state.last_reading, label: "BME280 Reading")
 
-    Process.send_after(self(), :read, @integration_time)
+    Process.send_after(self(), :read, integration_ms)
 
     {:noreply, updated_state}
   end
@@ -139,6 +152,23 @@ defmodule Bme280 do
     # 5. Update state
     {:reply, converted,
      %{state | last_raw_reading: raw, last_reading: converted, config: forced_config}}
+  end
+
+  @impl true
+  def terminate(reason, state) do
+    Logger.info("BME280 GenServer terminating. Reason: #{inspect(reason)}")
+
+    # Clean up I2C bus if it's open
+    case state do
+      %{i2c: i2c} when not is_nil(i2c) ->
+        Comm.close(i2c)
+        Logger.info("Closed I2C connection.")
+
+      _ ->
+        Logger.warn("No I2C connection found to close.")
+    end
+
+    :ok
   end
 
   defp convert_pressure_units(reading, :pa), do: reading

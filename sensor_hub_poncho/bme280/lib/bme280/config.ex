@@ -81,9 +81,9 @@ defmodule Bme280.Config do
   defp osrs_p_to_bit(:osrs_8x), do: 0b100
   defp osrs_p_to_bit(:osrs_16x), do: 0b101
 
-  defp mode_to_bit(:normal), do: 0b00
+  defp mode_to_bit(:normal), do: 0b11
   defp mode_to_bit(:forced), do: 0b01
-  defp mode_to_bit(:sleep), do: 0b10
+  defp mode_to_bit(:sleep), do: 0b00
 
   @doc """
   This will be responsible for calculating the integration time in milliseconds.
