@@ -2,6 +2,7 @@ defmodule LTR390_UV.Comm do
   alias Circuits.I2C
   alias LTR390_UV.Config
 
+
   import Bitwise
 
   @enable_register 0x00
@@ -20,6 +21,8 @@ defmodule LTR390_UV.Comm do
   end
 
   def write_config(config, i2c, sensor) do
+
+
     enable_byte = Config.to_enable_byte(config)
     control_byte = Config.to_control_byte(config)
     gain_byte = Config.to_gain_byte(config)
@@ -50,28 +53,4 @@ defmodule LTR390_UV.Comm do
     raw = high <<< 16 ||| mid <<< 8 ||| low
     Config.als_to_lux(config, raw)
   end
-
-  # def read(i2c, sensor, %Config{uvs_als: :uvs} = config) do
-  #   try do
-  #     <<low, mid, high>> =
-  #       I2C.write_read!(i2c, sensor, <<hd(@uvs_data_register)>>, 3)
-
-  #     raw = high <<< 16 ||| mid <<< 8 ||| low
-  #     Config.uvs_to_uvi(config, raw)
-  #   rescue
-  #     e -> {:error, e}
-  #   end
-  # end
-
-  # def read(i2c, sensor, %Config{uvs_als: :als} = config) do
-  #   try do
-  #     <<low, mid, high>> =
-  #       I2C.write_read!(i2c, sensor, <<hd(@als_data_register)>>, 3)
-
-  #     raw = high <<< 16 ||| mid <<< 8 ||| low
-  #     Config.als_to_lux(config, raw, 0)
-  #   rescue
-  #     e -> {:error, e}
-  #   end
-  # end
 end

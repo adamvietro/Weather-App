@@ -22,6 +22,10 @@ defmodule TSL25911FN do
     GenServer.call(__MODULE__, :measure)
   end
 
+  def kill(reason \\ :normal) do
+    GenServer.stop(__MODULE__, reason)
+  end
+
   @doc """
   Starts the TSL25911FN GenServer with the given options. It will start the and then set an interval to
   read and then log the light reading every second.
@@ -83,17 +87,19 @@ defmodule TSL25911FN do
   This are set to take the last reading from the sensor, then update the reading with the new reading and
   appending it to the state.
   """
-@impl true
-def handle_info(:measure, %{i2c: i2c, address: address, config: config, integration_ms: integration_ms} = state) do
-  last_reading = Comm.read(i2c, address, config)
-  updated_state = %{state | last_reading: last_reading}
+  @impl true
+  def handle_info(
+        :measure,
+        %{i2c: i2c, address: address, config: config, integration_ms: integration_ms} = state
+      ) do
+    last_reading = Comm.read(i2c, address, config)
+    updated_state = %{state | last_reading: last_reading}
 
-  # schedule next measurement after integration_ms milliseconds
-  Process.send_after(self(), :measure, integration_ms)
+    # schedule next measurement after integration_ms milliseconds
+    Process.send_after(self(), :measure, integration_ms)
 
-  {:noreply, updated_state}
-end
-
+    {:noreply, updated_state}
+  end
 
   @doc """
   This is called when the GenServer is asked to measure the light level.
@@ -113,7 +119,18 @@ end
 
   @impl true
   def terminate(_reason, %{i2c: i2c}) do
-    Circuits.I2C.close(i2c)
+    Logger.info("TSL25911FN GenServer terminating. Reason: #{inspect(reason)}")
+
+    # Clean up I2C bus if it's open
+    case state do
+      %{i2c: i2c} when not is_nil(i2c) ->
+        Comm.close(i2c)
+        Logger.info("Closed I2C connection.")
+
+      _ ->
+        Logger.warning("No I2C connection found to close.")
+    end
+
     :ok
   end
 end

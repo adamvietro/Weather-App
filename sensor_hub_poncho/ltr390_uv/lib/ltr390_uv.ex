@@ -22,6 +22,10 @@ defmodule LTR390_UV do
     GenServer.call(__MODULE__, :measure)
   end
 
+  def kill(reason \\ :normal) do
+    GenServer.stop(__MODULE__, reason)
+  end
+
   @doc """
   Starts the LTSR390_UV GenServer with the given options. It will start the and then set an interval to
   read and then log the light reading every second.
@@ -125,65 +129,6 @@ defmodule LTR390_UV do
     {:noreply, %{new_state | config: new_config}}
   end
 
-  # @impl true
-  # def handle_info(
-  #       :measure,
-  #       %{
-  #         i2c: i2c,
-  #         address: address,
-  #         config: config,
-  #         measure_rate: measure_rate,
-  #         uvs_als: current_mode
-  #       } = state
-  #     ) do
-  #   case safe_read(i2c, address, config, current_mode) do
-  #     {:ok, last_reading} ->
-  #       # Toggle mode and update config accordingly
-  #       {new_state, new_config} =
-  #         case current_mode do
-  #           :uvs ->
-  #             {%{state | last_uvs: last_reading, uvs_als: :als}, %{config | uvs_als: :als}}
-
-  #           :als ->
-  #             {%{state | last_als: last_reading, uvs_als: :uvs}, %{config | uvs_als: :uvs}}
-  #         end
-
-  #       # Write new config to switch sensor mode
-  #       Comm.write_config(new_config, i2c, address)
-
-  #       # Schedule next measurement
-  #       Process.send_after(self(), :measure, measure_rate)
-
-  #       {:noreply, %{new_state | config: new_config}}
-
-  #     {:error, reason} ->
-  #       Logger.error("Failed to read sensor: #{inspect(reason)}")
-
-  #       # Schedule next measurement anyway to keep trying
-  #       Process.send_after(self(), :measure, measure_rate)
-
-  #       {:noreply, state}
-  #   end
-  # end
-
-  # defp safe_read(i2c, address, config, :uvs) do
-  #   try do
-  #     reading = Comm.read(i2c, address, config)
-  #     {:ok, reading}
-  #   rescue
-  #     e -> {:error, e}
-  #   end
-  # end
-
-  # defp safe_read(i2c, address, config, :als) do
-  #   try do
-  #     reading = Comm.read(i2c, address, config)
-  #     {:ok, reading}
-  #   rescue
-  #     e -> {:error, e}
-  #   end
-  # end
-
   @impl true
   def handle_call(:measure, _from, %{i2c: i2c, address: address, config: config} = state) do
     # Read fresh sensor data
@@ -199,31 +144,6 @@ defmodule LTR390_UV do
     {:reply, last_reading, new_state}
   end
 
-  # @impl true
-  # def handle_call(:measure, _from, %{i2c: i2c, address: address, config: config} = state) do
-  #   result =
-  #     try do
-  #       {:ok, Comm.read(i2c, address, config)}
-  #     rescue
-  #       e -> {:error, e}
-  #     end
-
-  #   case result do
-  #     {:ok, last_reading} ->
-  #       new_state =
-  #         case state.uvs_als do
-  #           :uvs -> %{state | last_uvs: last_reading}
-  #           :als -> %{state | last_als: last_reading}
-  #         end
-
-  #       {:reply, {:ok, last_reading}, new_state}
-
-  #     {:error, reason} ->
-  #       Logger.error("I2C read failed: #{inspect(reason)}")
-  #       {:reply, {:error, reason}, state}
-  #   end
-  # end
-
   @doc """
   This is called when the GenServer is asked to get the last measurements for both uvs and als.
   """
@@ -235,8 +155,19 @@ defmodule LTR390_UV do
   end
 
   @impl true
-  def terminate(_reason, %{i2c: i2c}) do
-    Circuits.I2C.close(i2c)
+  def terminate(reason, state) do
+    Logger.info("LTR390_UV GenServer terminating. Reason: #{inspect(reason)}")
+
+    # Clean up I2C bus if it's open
+    case state do
+      %{i2c: i2c} when not is_nil(i2c) ->
+        Comm.close(i2c)
+        Logger.info("Closed I2C connection.")
+
+      _ ->
+        Logger.warning("No I2C connection found to close.")
+    end
+
     :ok
   end
 end
