@@ -18,6 +18,10 @@ defmodule Bme280.Comm do
     i2c
   end
 
+  def close(i2c) do
+    I2C.close(i2c)
+  end
+
   def write_config(config, i2c, sensor) do
     ctrl_hum_byte = Config.to_ctrl_hum_byte(config)
     ctrl_meas_byte = Config.to_ctrl_meas_byte(config)
