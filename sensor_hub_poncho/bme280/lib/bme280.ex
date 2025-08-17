@@ -47,7 +47,7 @@ defmodule Bme280 do
       _ -> Logger.error("Terminating BME280 sensor with reason: #{inspect(reason)}")
     end
 
-    GenServer.cast(__MODULE__, {:kill, reason})
+    GenServer.stop(__MODULE__, reason)
   end
 
   @doc """
@@ -165,7 +165,7 @@ defmodule Bme280 do
         Logger.info("Closed I2C connection.")
 
       _ ->
-        Logger.warn("No I2C connection found to close.")
+        Logger.warning("No I2C connection found to close.")
     end
 
     :ok
