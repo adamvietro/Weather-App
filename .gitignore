@@ -25,3 +25,6 @@ sensor_hub_poncho/sensor_hub/erl_crash.dump
 
 #VScode
 .vscode/
+
+#_build
+/sensor_hub_poncho/_build/
