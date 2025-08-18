@@ -15,7 +15,7 @@ defmodule Sgp40.CrcHelper do
 
   def crc8(data) when is_list(data) do
     Enum.reduce(data, @init, fn byte, crc ->
-      crc_byte(crc ^^^ byte)
+      crc_byte(Bitwise.^^^(crc, byte))
     end)
   end
 
@@ -23,7 +23,7 @@ defmodule Sgp40.CrcHelper do
   defp crc_byte(byte) do
     Enum.reduce(0..7, byte, fn _, crc ->
       if (crc &&& 0x80) != 0 do
-        (crc <<< 1) ^^^ @polynomial &&& 0xFF
+        Bitwise.^^^(crc <<< 1, @polynomial) &&& 0xFF
       else
         crc <<< 1 &&& 0xFF
       end
