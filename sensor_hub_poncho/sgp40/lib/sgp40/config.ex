@@ -1,8 +1,6 @@
 defmodule Sgp40.Config do
   alias Sgp40.CrcHelper
 
-  import Bitwise
-
   @measure_cmd <<0x26, 0x0F>>
   @default_humidity <<0x80, 0x00, 0xA2>>
   @default_temperature <<0x66, 0x66, 0x93>>

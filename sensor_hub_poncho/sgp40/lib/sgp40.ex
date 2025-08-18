@@ -41,7 +41,6 @@ defmodule Sgp40 do
   """
   @impl true
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
-    IO.inspect("Initializing SGP40... with second init")
     i2c = Comm.open(bus_name)
 
     config =
@@ -51,21 +50,24 @@ defmodule Sgp40 do
 
     Comm.initialize_sensor(i2c, address)
 
-    Process.send_after(self(), :measure, 50)
+    # Standard time is ~30ms want to give it some more time.
+    Process.send_after(self(), :measure, 100)
 
     state = %{
       i2c: i2c,
       address: address,
       config: config,
-      last_reading: :no_reading
+      last_reading: :no_reading,
+      last_raw_reading: :no_reading
     }
 
     {:ok, state}
   end
 
   def init(args) do
-    IO.inspect("Initializing SGP40...")
-    {bus_name, address} = Comm.discover()
+    # Hardcoded bus and address
+    bus_name = "i2c-1"
+    address = 0x59
     transport = "bus: #{bus_name}, address: #{address}"
     Logger.info("Starting SGP40. Please specify an address and a bus.")
     Logger.info("Starting on " <> transport)
@@ -80,15 +82,22 @@ defmodule Sgp40 do
 
   @impl true
   def handle_info(:measure, %{i2c: i2c, address: address} = state) do
-    last_reading = Comm.measure(i2c, address, state.config)
+    case Comm.measure(i2c, address, state.config) do
+      {:ok, raw} ->
+        Logger.info("SGP40 measurement taken: #{inspect(raw)}")
+        last_reading = CrcHelper.decode_voc(raw)
+        Process.send_after(self(), :measure, 50)
+        {:noreply, %{state | last_reading: last_reading, last_raw_reading: raw}}
 
-    Process.send_after(self(), :measure, 50)
-
-    {:noreply, %{state | last_reading: last_reading}}
+      {:error, reason} ->
+        Logger.error("SGP40 measurement failed: #{inspect(reason)}")
+        Process.send_after(self(), :measure, 50)
+        {:noreply, state}
+    end
   end
 
   @impl true
-  def terminate(reason, %{i2c: i2c} = state) do
+  def terminate(reason, state) do
     Logger.info("SGP40 GenServer terminating. Reason: #{inspect(reason)}")
 
     # Clean up I2C bus if it's open

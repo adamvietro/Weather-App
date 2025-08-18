@@ -3,8 +3,6 @@ defmodule Sgp40.Comm do
   alias Sgp40.Config
   alias Sgp40.CrcHelper
 
-  import Bitwise
-
   @moduledoc """
   1. The sensor is powered up
   2. The I2C master periodically calls the measurement command and reads data in the following sequence:
@@ -29,20 +27,19 @@ defmodule Sgp40.Comm do
   end
 
   def initialize_sensor(i2c, sensor) do
-    # Optional soft reset
-    I2C.write(i2c, sensor, Config.soft_reset())
-    :timer.sleep(10)
-
-    # Self-test
-    I2C.write(i2c, sensor, Config.self_test())
-    :timer.sleep(250)
-
-    <<msb, lsb, crc>> = I2C.read(i2c, sensor, 3)
-
-    if CrcHelper.crc8(<<msb, lsb>>) == crc do
+    with :ok <- I2C.write(i2c, sensor, Config.soft_reset()),
+         :timer.sleep(10),
+         :ok <- I2C.write(i2c, sensor, Config.self_test()),
+         :timer.sleep(250),
+         {:ok, <<msb, lsb, crc>>} <- I2C.read(i2c, sensor, 3),
+         true <- CrcHelper.crc8(<<msb, lsb>>) == crc do
       {:ok, :test_passed}
     else
-      {:error, :test_failed}
+      {:error, reason} ->
+        {:error, {:i2c_write_read_failed, reason}}
+
+      false ->
+        {:error, :crc_failed}
     end
   end
 

@@ -38,4 +38,19 @@ defmodule Sgp40.CrcHelper do
     data = <<msb, lsb>>
     <<msb, lsb, crc8(data)>>
   end
+
+  @doc """
+  Convert raw SGP40 measurement (6 bytes) to VOC value in ppb.
+  Expects <<msb, lsb, crc, _, _, _>> from get_measurement/0
+  """
+  def decode_voc(<<msb, lsb, crc, _, _, _>>) do
+    if crc != crc8(<<msb, lsb>>) do
+      {:error, :crc_mismatch}
+    else
+      raw = msb <<< 8 ||| lsb
+      # Datasheet conversion: VOC index (0..500) ≈ raw / 65535 * 500
+      voc_ppb = raw * 500 / 65_535
+      {:ok, voc_ppb}
+    end
+  end
 end
