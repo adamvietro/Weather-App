@@ -24,8 +24,16 @@ defmodule Sgp40.Config do
   end
 
   def measure_frame(%__MODULE__{humidity: hum, temperature: temp}) do
-    hum_bytes = encode_with_crc(hum)
-    temp_bytes = encode_with_crc(temp)
+    hum_bytes = CrcHelper.encode_with_crc(hum)
+    temp_bytes = CrcHelper.encode_with_crc(temp)
     @measure_cmd <> hum_bytes <> temp_bytes
+  end
+
+  def soft_reset do
+    <<0x00, 0x06>>
+  end
+
+  def self_test do
+    <<0x28, 0x0E>>
   end
 end

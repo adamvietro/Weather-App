@@ -1,6 +1,7 @@
 defmodule Sgp40.Comm do
   alias Circuits.I2C
   alias Sgp40.Config
+  alias Sgp40.CrcHelper
 
   import Bitwise
 
@@ -14,8 +15,7 @@ defmodule Sgp40.Comm do
   c. I2C master reads out the measurement result.
   """
 
-  @self_test <<0x28, 0x0E>>
-  @soft_reset <<0x00, 0x06>>
+
 
   def discover(possible_addresses \\ [0x59]) do
     I2C.discover_one!(possible_addresses)
@@ -32,12 +32,12 @@ defmodule Sgp40.Comm do
 
   def initialize_sensor(i2c, sensor) do
     # Optional soft reset
-    I2C.write(i2c, sensor, Sgp40.Config.soft_reset())
+    I2C.write(i2c, sensor, Config.soft_reset())
     :timer.sleep(10)
 
     # Self-test
-    I2C.write(i2c, sensor, Sgp40.Config.self_test())
-    :timer.sleep(220)
+    I2C.write(i2c, sensor, Config.self_test())
+    :timer.sleep(250)
 
     <<msb, lsb, crc>> = I2C.read(i2c, sensor, 3)
 
@@ -52,7 +52,7 @@ defmodule Sgp40.Comm do
     frame = Config.measure_frame(config)
     I2C.write(i2c, sensor, frame)
     # measurement duration
-    :timer.sleep(250)
+    :timer.sleep(30)
     # read 2-byte VOC + CRC for each
     I2C.read(i2c, sensor, 6)
   end

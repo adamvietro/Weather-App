@@ -118,8 +118,8 @@ defmodule TSL25911FN do
   end
 
   @impl true
-  def terminate(_reason, %{i2c: i2c}) do
-    Logger.info("TSL25911FN GenServer terminating. Reason: #{inspect(reason)}")
+  def terminate(reason, state) do
+    Logger.info("SGP40 GenServer terminating. Reason: #{inspect(reason)}")
 
     # Clean up I2C bus if it's open
     case state do
