@@ -41,6 +41,7 @@ defmodule Sgp40 do
   """
   @impl true
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
+    IO.inspect("Initializing SGP40... with second init")
     i2c = Comm.open(bus_name)
 
     config =
@@ -63,6 +64,7 @@ defmodule Sgp40 do
   end
 
   def init(args) do
+    IO.inspect("Initializing SGP40...")
     {bus_name, address} = Comm.discover()
     transport = "bus: #{bus_name}, address: #{address}"
     Logger.info("Starting SGP40. Please specify an address and a bus.")
@@ -76,6 +78,7 @@ defmodule Sgp40 do
     init(defaults)
   end
 
+  @impl true
   def handle_info(:measure, %{i2c: i2c, address: address} = state) do
     last_reading = Comm.measure(i2c, address, state.config)
 

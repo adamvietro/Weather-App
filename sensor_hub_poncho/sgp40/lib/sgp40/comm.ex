@@ -15,8 +15,6 @@ defmodule Sgp40.Comm do
   c. I2C master reads out the measurement result.
   """
 
-
-
   def discover(possible_addresses \\ [0x59]) do
     I2C.discover_one!(possible_addresses)
   end
