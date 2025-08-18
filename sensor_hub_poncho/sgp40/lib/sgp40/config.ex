@@ -1,0 +1,31 @@
+defmodule Sgp40.Config do
+  alias Sgp40.CrcHelper
+
+  import Bitwise
+
+  @measure_cmd <<0x26, 0x0F>>
+  @default_humidity <<0x80, 0x00, 0xA2>>
+  @default_temperature <<0x66, 0x66, 0x93>>
+
+  defstruct humidity: nil,
+            temperature: nil
+
+  def new, do: struct(__MODULE__)
+
+  def new(opts) do
+    struct(__MODULE__, opts)
+  end
+
+  @doc """
+  This will be responsible for the configuration byte.
+  """
+  def measure_frame(%__MODULE__{humidity: nil, temperature: nil}) do
+    @measure_cmd <> @default_humidity <> @default_temperature
+  end
+
+  def measure_frame(%__MODULE__{humidity: hum, temperature: temp}) do
+    hum_bytes = encode_with_crc(hum)
+    temp_bytes = encode_with_crc(temp)
+    @measure_cmd <> hum_bytes <> temp_bytes
+  end
+end

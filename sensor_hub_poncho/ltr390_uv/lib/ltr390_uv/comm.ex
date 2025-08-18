@@ -20,6 +20,10 @@ defmodule LTR390_UV.Comm do
     i2c
   end
 
+  def close(i2c) do
+    I2C.close(i2c)
+  end
+
   def write_config(config, i2c, sensor) do
 
 

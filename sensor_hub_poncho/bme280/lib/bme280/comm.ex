@@ -4,6 +4,13 @@ defmodule Bme280.Comm do
 
   import Bitwise
 
+  @moduledoc """
+  BME280 Communication Module
+
+  This module handles communication with the BME280 sensor over I2C.
+  The registers for the different settings modules is below.
+  """
+
   @ctrl_hum 0xF2
   @ctrl_meas 0xF4
   @config_register 0xF5
@@ -39,9 +46,6 @@ defmodule Bme280.Comm do
     I2C.write(i2c, sensor, <<@config_register, config_byte>>)
   end
 
-  @doc """
-  Still need to configure this but I think that we have something to start.
-  """
   def read(i2c, sensor) do
     <<press_msb, press_lsb, press_xlsb, temp_msb, temp_lsb, temp_xlsb, hum_msb, hum_lsb>> =
       I2C.write_read!(i2c, sensor, <<@data_register>>, 8)

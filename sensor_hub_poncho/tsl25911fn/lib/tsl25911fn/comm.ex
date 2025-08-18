@@ -18,6 +18,10 @@ defmodule TSL25911FN.Comm do
     i2c
   end
 
+  def close(i2c) do
+    I2C.close(i2c)
+  end
+
   def write_config(config, i2c, sensor) do
     enable_byte = Config.to_enable_byte(config)
     control_byte = Config.to_control_byte(config)
