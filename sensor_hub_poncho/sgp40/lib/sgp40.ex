@@ -45,16 +45,7 @@ defmodule Sgp40 do
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
     i2c = Comm.open(bus_name)
 
-    %{last_reading: %{temperature_c: temperature, humidity_rh: humidity, pressure_pa: _pressure}} =
-      Bme280.get_measurement()
-
-    {temp_tuple, hum_tuple} =
-      Converter.human_to_tuple(temperature, humidity)
-
-    config =
-      args
-      |> Map.merge(%{temperature: temp_tuple, humidity: hum_tuple})
-      |> Config.new()
+    config = Config.new(args) |> maybe_update_config()
 
     Comm.initialize_sensor(i2c, address)
 
@@ -90,12 +81,13 @@ defmodule Sgp40 do
 
   @impl true
   def handle_info(:measure, %{i2c: i2c, address: address} = state) do
-    case Comm.measure(i2c, address, state.config) do
+    config = maybe_update_config(state.config)
+
+    case Comm.measure(i2c, address, config) do
       {:ok, raw} ->
-        Logger.info("SGP40 measurement taken: #{inspect(raw)}")
         last_reading = CrcHelper.decode_voc(raw)
         Process.send_after(self(), :measure, 50)
-        {:noreply, %{state | last_reading: last_reading, last_raw_reading: raw}}
+        {:noreply, %{state | last_reading: last_reading, last_raw_reading: raw, config: config}}
 
       {:error, reason} ->
         Logger.error("SGP40 measurement failed: #{inspect(reason)}")
@@ -124,5 +116,19 @@ defmodule Sgp40 do
   @impl true
   def handle_call(:get_measurement, _from, %{last_reading: last_reading} = state) do
     {:reply, last_reading, state}
+  end
+
+  defp maybe_update_config(nil), do: nil
+
+  defp maybe_update_config(config) do
+    case Process.whereis(Bme280) do
+      nil ->
+        config
+
+      _pid ->
+        %{last_reading: %{temperature_c: temp, humidity_rh: hum}} = Bme280.get_measurement()
+        {temp_tuple, hum_tuple} = Converter.human_to_tuple(temp, hum)
+        %{config | temperature: temp_tuple, humidity: hum_tuple}
+    end
   end
 end

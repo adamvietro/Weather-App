@@ -56,6 +56,9 @@ defmodule SensorHub.MixProject do
       # Dependencies for all targets except :host
       {:tsl25911fn, path: "../tsl25911fn", targets: @all_targets},
       {:ltr390_uv, path: "../ltr390_uv", targets: @all_targets},
+      # Predefined lib.
+      # {:sgp40, "~> 0.1.5", targets: @all_targets},
+      # My built lib
       {:sgp40, path: "../sgp40", targets: @all_targets},
       {:bme280, path: "../bme280", targets: @all_targets},
       {:nerves_pack, "~> 0.7.1", targets: @all_targets},
