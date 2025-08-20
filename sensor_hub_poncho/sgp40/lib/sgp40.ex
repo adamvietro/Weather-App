@@ -6,6 +6,8 @@ defmodule Sgp40 do
   alias Sgp40.Comm
   alias Sgp40.Config
   alias Sgp40.CrcHelper
+  alias Sgp40.Converter
+  alias Bme280
 
   @moduledoc """
   Documentation for `Sgp40` Indoor Air Quality Sensor. It will take some measurements and provide air quality data.
@@ -43,9 +45,15 @@ defmodule Sgp40 do
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
     i2c = Comm.open(bus_name)
 
+    %{last_reading: %{temperature_c: temperature, humidity_rh: humidity, pressure_pa: _pressure}} =
+      Bme280.get_measurement()
+
+    {temp_tuple, hum_tuple} =
+      Converter.human_to_tuple(temperature, humidity)
+
     config =
       args
-      |> Map.take([:temperature, :humidity])
+      |> Map.merge(%{temperature: temp_tuple, humidity: hum_tuple})
       |> Config.new()
 
     Comm.initialize_sensor(i2c, address)
