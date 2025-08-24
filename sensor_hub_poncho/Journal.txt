@@ -1569,8 +1569,6 @@ Build all the Sensor Config and Comm. (38)
         Sgp40.start_link()
         Sgp40.get_measurement()
 
-
-
     Build the Firmware Project      
 
         You will want to have a config files for each of your differnt sensors or pi's that you will deploy. In the end you will do most of the work withing an aplication.ex. Other than that you will want to figure the config.ex and then the mix.ex to ensure that you have the right dependencies.
@@ -1591,5 +1589,27 @@ Build all the Sensor Config and Comm. (38)
             Before when we would nerves.local it was because of this line here not we can hub.local
 
         Include Dependencies for Sensors
-            
+            Okay so we are not starting to normalize the data from the sensors. We will do this with the file /sensor_hub/sensor.ex.
 
+            sensor.ex
+                defstruct [:name, :fields, :read, :convert]
+
+                def new(name) do
+                    %__MODULE__{
+                    read: read_fn(name),
+                    convert: convert_fn(name),
+                    fields: fields(name),
+                    name: name
+                    }
+                end
+
+                #then we need fields(), read(), convert()
+                def fields(SPG40) when sgp40 in [:sgp40, "sgp40"], do: [:voc_index]
+                def read(SPG40) when sgp40 in [:sgp40, "sgp40"], do: fn -> Sgp40.get_measurement() end
+                def convert_fn(SGP40) do
+                    fn reading ->
+                    Map.take(reading, [:voc_index])
+                    end
+                end
+
+            With these for each sensor we are now passing the GenServer by name to the new that will start to take measurements from each sensor and turn the general values into something that we can use for each sensor.
