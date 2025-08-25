@@ -26,15 +26,25 @@ defmodule SensorHub.Sensor do
   end
 
   def read_fn(Bme280) do
-       fn ->
-           %{last_reading: read} = Bme280.get_measurement()
+    fn ->
+      %{last_reading: read} = Bme280.get_measurement()
       read
-      end
-   end
+    end
+  end
 
+  def read_fn(TSL25911FN) do
+    fn ->
+      %{last_reading: read} = TSL25911FN.get_measurement()
+      read
+    end
+  end
 
-  def read_fn(TSL25911FN), do: fn -> TSL25911FN.get_measurement() end
-  def read_fn(LTR390_UV), do: fn -> LTR390_UV.get_measurement() end
+  def read_fn(LTR390_UV) do
+    fn ->
+      %{last_reading: read} = LTR390_UV.get_measurement()
+      read
+    end
+  end
 
   def convert_fn(Sgp40) do
     fn reading ->
