@@ -1633,3 +1633,37 @@ Build all the Sensor Config and Comm. (38)
                 Sensor.measure(ltr)
 
             To go over a few things the code sinpets above are set to work when the readings give you the exact keys in the map as the fields. I had to do some work to make what I have work as most all the readings will return something like %{last_reading: last_reading} with last_reading having some reference to the values that it will have in it.
+
+        Setting up the Supervisor tree
+            We now need to be sure that not only is there a supervisor tree setup to make sure that you have a way to make sure that the GenSevers will restart and all start in the correct order we also need to be sure that we auto start the sensors when we power the Raspberry Pi
+
+            def children(_target) do
+                # This function returns the child processes to be supervised
+                # Here you can define the children for your application
+                [
+                {Bme280, []},
+                {Sgp40, []},
+                {TSL25911FN, []},
+                {LTR390_UV, []}
+                ]
+            end
+
+            and
+
+            @impl true
+            def start(_type, _args) do
+                # See https://hexdocs.pm/elixir/Supervisor.html
+                # for other strategies and supported options
+
+                children =
+                children(target())
+
+                opts = [strategy: :one_for_one, name: SensorHub.Supervisor]
+                Supervisor.start_link(children, opts)
+            end
+
+            Now we can create and upload the firmware and it will start automatically and also we can test the sensors with
+            
+                Supervisor.which_children(SensorHub.Supervisor)
+
+                Bme280 |> Sensor.new() |> Sensor.measure()

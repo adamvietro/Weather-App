@@ -7,17 +7,25 @@ defmodule SensorHub.Application do
 
   @impl true
   def start(_type, _args) do
-    children =
-      [
-        # Children for all targets
-        # Starts a worker by calling: SensorHub.Worker.start_link(arg)
-        # {SensorHub.Worker, arg},
-      ] ++ target_children()
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
+
+    children =
+      children(target())
+
     opts = [strategy: :one_for_one, name: SensorHub.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  def children(_target) do
+    # This function returns the child processes to be supervised
+    # Here you can define the children for your application
+    [
+      {Bme280, []},
+      {Sgp40, []},
+      {TSL25911FN, []},
+      {LTR390_UV, []}
+    ]
   end
 
   # List all child processes to be supervised
