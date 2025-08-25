@@ -1667,3 +1667,7 @@ Build all the Sensor Config and Comm. (38)
                 Supervisor.which_children(SensorHub.Supervisor)
 
                 Bme280 |> Sensor.new() |> Sensor.measure()
+
+        This is everything that we wanted to deal with up to this point. Next we can deal with some offset for the temp and VOC and then PUBLISHING THE SENSOR DATA.
+
+Chapter 4 Publishing Sensor Data (47)
