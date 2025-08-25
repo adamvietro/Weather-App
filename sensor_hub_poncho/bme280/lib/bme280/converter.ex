@@ -1,5 +1,6 @@
 defmodule Bme280.Converter do
   alias Bme280.Calibration
+  alias Bme280.PiTemp.Helper
 
   @spec convert({integer, integer, integer}, Calibration.t()) ::
           %{temperature_c: float, pressure_pa: float, humidity_rh: float}
@@ -8,11 +9,13 @@ defmodule Bme280.Converter do
     press_pa = compensate_press(adc_P, t_fine, calib)
     hum_pct = compensate_hum(adc_H, t_fine, calib)
 
-    %{
+    reading = %{
       temperature_c: temp_c,
       pressure_pa: press_pa,
       humidity_rh: hum_pct
     }
+
+    adjust_temp(reading)
   end
 
   def compensate_temp(adc_T, calib) do
@@ -63,6 +66,22 @@ defmodule Bme280.Converter do
       h > 100.0 -> 100.0
       h < 0.0 -> 0.0
       true -> h
+    end
+  end
+
+  # Take BME280 measurement and apply CPU heat offset
+  def adjust_temp(reading, factor \\ 1.5) do
+    case Helper.get_cpu_temp_c() do
+      # fallback if CPU temp can't be read
+      {:error, _} ->
+        reading
+
+      cpu_temp ->
+        Map.put(
+          reading,
+          :temperature_c,
+          reading.temperature_c - (cpu_temp - reading.temperature_c) / factor
+        )
     end
   end
 end
