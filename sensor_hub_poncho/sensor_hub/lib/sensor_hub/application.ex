@@ -11,20 +11,26 @@ defmodule SensorHub.Application do
     # for other strategies and supported options
 
     children =
-      children(target())
+      children([]) ++ target_children()
 
     opts = [strategy: :one_for_one, name: SensorHub.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # Children based on target
+  def children(:host) do
+    # Nothing or host-safe workers
+    []
   end
 
   def children(_target) do
     # This function returns the child processes to be supervised
     # Here you can define the children for your application
     [
-      {Bme280, []},
-      {Sgp40, []},
-      {TSL25911FN, []},
-      {LTR390_UV, []}
+      {Bme280, %{}},
+      {Sgp40, %{}},
+      {TSL25911FN, %{}},
+      {LTR390_UV, %{}}
     ]
   end
 
