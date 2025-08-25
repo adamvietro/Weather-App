@@ -1604,8 +1604,8 @@ Build all the Sensor Config and Comm. (38)
                 end
 
                 #then we need fields(), read(), convert()
-                def fields(SPG40) when sgp40 in [:sgp40, "sgp40"], do: [:voc_index]
-                def read(SPG40) when sgp40 in [:sgp40, "sgp40"], do: fn -> Sgp40.get_measurement() end
+                def fields(SPG40), do: [:voc_index]
+                def read(SPG40), do: fn -> Sgp40.get_measurement() end
                 def convert_fn(SGP40) do
                     fn reading ->
                     Map.take(reading, [:voc_index])
@@ -1613,3 +1613,23 @@ Build all the Sensor Config and Comm. (38)
                 end
 
             With these for each sensor we are now passing the GenServer by name to the new that will start to take measurements from each sensor and turn the general values into something that we can use for each sensor.
+
+            Here are some lines to put into iex so you can test everything:
+                alias SensorHub.Sensor
+
+                Bme280.start_link()
+                Sgp40.start_link()
+                TSL25911FN.start_link()
+                LTR390_UV.start_link()
+
+                bme = Sensor.new(Bme280)
+                sgp = Sensor.new(Sgp40)
+                tsl = Sensor.new(TSL25911FN)
+                ltr = Sensor.new(LTR390_UV)
+
+                Sensor.measure(bme)
+                Sensor.measure(sgp)
+                Sensor.measure(tsl)
+                Sensor.measure(ltr)
+
+            To go over a few things the code sinpets above are set to work when the readings give you the exact keys in the map as the fields. I had to do some work to make what I have work as most all the readings will return something like %{last_reading: last_reading} with last_reading having some reference to the values that it will have in it.

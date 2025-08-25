@@ -151,7 +151,7 @@ defmodule LTR390_UV do
   def handle_call(:get_measurement, _from, state) do
     last_uvs = state.last_uvs
     last_als = state.last_als
-    {:reply, {last_uvs, last_als}, state}
+    {:reply, %{uv_index: last_uvs, als_lux: last_als}, state}
   end
 
   @impl true

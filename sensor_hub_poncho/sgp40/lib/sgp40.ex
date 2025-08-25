@@ -126,9 +126,18 @@ defmodule Sgp40 do
         config
 
       _pid ->
-        %{last_reading: %{temperature_c: temp, humidity_rh: hum}} = Bme280.get_measurement()
-        {temp_tuple, hum_tuple} = Converter.human_to_tuple(temp, hum)
-        %{config | temperature: temp_tuple, humidity: hum_tuple}
+        case Bme280.get_measurement() do
+          %{last_reading: nil} ->
+            config
+
+          %{last_reading: %{temperature_c: temp, humidity_rh: hum}} ->
+            {temp_tuple, hum_tuple} = Converter.human_to_tuple(temp, hum)
+            %{config | temperature: temp_tuple, humidity: hum_tuple}
+
+          _ ->
+            # fallback in case the structure is unexpected
+            config
+        end
     end
   end
 end

@@ -34,15 +34,13 @@ defmodule SensorHub.Sensor do
 
   def read_fn(TSL25911FN) do
     fn ->
-      %{last_reading: read} = TSL25911FN.get_measurement()
-      read
+      TSL25911FN.get_measurement()
     end
   end
 
   def read_fn(LTR390_UV) do
     fn ->
-      %{last_reading: read} = LTR390_UV.get_measurement()
-      read
+      LTR390_UV.get_measurement()
     end
   end
 

@@ -81,6 +81,6 @@ defmodule TSL25911FN.Config do
         raise ArgumentError, "Unsupported integration_time/gain combination: #{inspect(key)}"
 
     lux = ch0 - ch1
-    max(lux * factor, 0.0)
+    %{light_lumens: max(lux * factor, 0.0)}
   end
 end
