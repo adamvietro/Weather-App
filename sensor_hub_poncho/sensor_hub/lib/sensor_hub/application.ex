@@ -28,7 +28,7 @@ defmodule SensorHub.Application do
     # Here you can define the children for your application
     [
       {Bme280, %{}},
-      {Sgp40, %{}},
+      {SGP40, %{bus_name: "i2c-1", name: SGP40}},
       {TSL25911FN, %{}},
       {LTR390_UV, %{}}
     ]
