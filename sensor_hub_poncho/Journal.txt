@@ -1618,12 +1618,12 @@ Build all the Sensor Config and Comm. (38)
                 alias SensorHub.Sensor
 
                 Bme280.start_link()
-                Sgp40.start_link()
+                SGP40.start_link()
                 TSL25911FN.start_link()
                 LTR390_UV.start_link()
 
                 bme = Sensor.new(Bme280)
-                sgp = Sensor.new(Sgp40)
+                sgp = Sensor.new(SGP40)
                 tsl = Sensor.new(TSL25911FN)
                 ltr = Sensor.new(LTR390_UV)
 
@@ -1670,4 +1670,80 @@ Build all the Sensor Config and Comm. (38)
 
         This is everything that we wanted to deal with up to this point. Next we can deal with some offset for the temp and VOC and then PUBLISHING THE SENSOR DATA.
 
+        alias SensorHub.Sensor
+        bme = Sensor.new(Bme280)
+        sgp = Sensor.new(SGP40)
+        tsl = Sensor.new(TSL25911FN)
+        ltr = Sensor.new(LTR390_UV)
+
+        Sensor.measure(bme)
+        Sensor.measure(sgp)
+        Sensor.measure(tsl)
+        Sensor.measure(ltr)
+
 Chapter 4 Publishing Sensor Data (47)
+    Adding PostgreSQL to the Stack
+        Starting off we need to create a new phoenix weather_tracker app we will use the command
+            mix phx.new weather_tracker \
+                --binary-id --no-webpack --no-html --no-gettext --no-dashboard
+
+        With this being said you will need to have the right generator installed so if that doesn't work be sure to run this command within you linux console
+            mix archive.install hex phx_new 1.5.8
+
+        Once that is all setup we need to created the yml file and get into the proper location
+            cd weather_tracker && touch docker-compose.yml
+    
+        Okay so now we can populate the file with
+            version: '3.3'
+                services:
+                    postgres:
+                        image: timescale/timescaledb:2.1.0-pg13
+                        ports:
+                        - '5432:5432'
+                        volumes:
+                        - postgres-data:/var/lib/postgresql/data
+                        environment:
+                        POSTGRES_PASSWORD: postgres
+                        POSTGRES_USER: postgres
+                volumes:
+                    postgres-data: {}
+
+        Starting the Docker Compose Stack
+            docker-compose up
+
+            With that we will have the docker container up and running we will need to do some work to it so leave it up if you need to close it you can just crtl+calculated
+    
+    Creating the Phoenix Application
+        We will need to run some migrations so that we can persist the data from the sensors
+            mix ecto.gen.migration set_up_weather_data_table
+        
+        We can now setup the migrations for that data table with the following. It should have created a file with a time stamp and the file name appended to the time stamp.
+            defmodule WeatherTracker.Repo.Migrations.SetUpWeatherDataTable do
+                use Ecto.Migration
+
+                def up do
+                    execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
+
+                    create table(:weather_conditions, primary_key: false) do
+                    add :timestamp, :naive_datetime, null: false
+                    add :temperature_c, :decimal, null: false
+                    add :pressure_pa, :decimal, null: false
+                    add :humidity_rh, :decimal, null: false
+                    add :light_lumens, :decimal, null: false
+                    add :voc_index, :decimal, null: false
+                    add :uv_index, :decimal, null: false
+                    add :als_lux, :decimal, null: false
+                    end
+
+                    execute("SELECT create_hypertable('weather_conditions', 'timestamp')")
+                end
+
+                def down do
+                    drop table(:weather_conditions)
+                    execute("DROP EXTENSION IF EXISTS timescaledb")
+                end
+            end
+
+        This will setup the data table with the correct :atoms as names and will say what to do when we rool forward or what happens when we want to roll the database backwards. This will also make sure that we are running the timescale DB as the data table type.
+
+    
