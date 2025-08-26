@@ -44,23 +44,26 @@ defmodule Sgp40 do
   @impl true
   def init(%{address: address, i2c_bus_name: bus_name} = args) do
     i2c = Comm.open(bus_name)
-
     config = Config.new(args) |> maybe_update_config()
 
-    Comm.initialize_sensor(i2c, address)
+    case init_sensor_with_retry(i2c, address, 3) do
+      {:ok, :test_passed} ->
+        Process.send_after(self(), :measure, 100)
 
-    # Standard time is ~30ms want to give it some more time.
-    Process.send_after(self(), :measure, 100)
+        state = %{
+          i2c: i2c,
+          address: address,
+          config: config,
+          last_reading: :no_reading,
+          last_raw_reading: :no_reading
+        }
 
-    state = %{
-      i2c: i2c,
-      address: address,
-      config: config,
-      last_reading: :no_reading,
-      last_raw_reading: :no_reading
-    }
+        {:ok, state}
 
-    {:ok, state}
+      {:error, reason} ->
+        Logger.error("SGP40 failed to initialize after retries: #{inspect(reason)}")
+        {:stop, {:sensor_init_failed, reason}}
+    end
   end
 
   def init(args) do
@@ -138,6 +141,23 @@ defmodule Sgp40 do
             # fallback in case the structure is unexpected
             config
         end
+    end
+  end
+
+  defp init_sensor_with_retry(_i2c, _address, 0), do: {:error, :max_retries}
+
+  defp init_sensor_with_retry(i2c, address, attempts_left) do
+    case Comm.initialize_sensor(i2c, address) do
+      {:ok, :test_passed} ->
+        {:ok, :test_passed}
+
+      {:error, reason} ->
+        Logger.warning(
+          "SGP40 init failed (#{inspect(reason)}), #{attempts_left - 1} retries left"
+        )
+
+        :timer.sleep(50)
+        init_sensor_with_retry(i2c, address, attempts_left - 1)
     end
   end
 end

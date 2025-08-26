@@ -27,19 +27,41 @@ defmodule Sgp40.Comm do
   end
 
   def initialize_sensor(i2c, sensor) do
-    with :ok <- I2C.write(i2c, sensor, Config.soft_reset()),
-         :timer.sleep(10),
-         :ok <- I2C.write(i2c, sensor, Config.self_test()),
-         :timer.sleep(250),
-         {:ok, <<msb, lsb, crc>>} <- I2C.read(i2c, sensor, 3),
-         true <- CrcHelper.crc8(<<msb, lsb>>) == crc do
-      {:ok, :test_passed}
-    else
-      {:error, reason} ->
-        {:error, {:i2c_write_read_failed, reason}}
+    # Soft reset, ignore failure
+    case I2C.write(i2c, sensor, Config.soft_reset()) do
+      :ok -> IO.puts("Soft reset sent")
+      {:error, :i2c_nak} -> IO.puts("Soft reset NAK, ignoring")
+      {:error, reason} -> IO.puts("Soft reset error: #{inspect(reason)}, ignoring")
+    end
 
-      false ->
-        {:error, :crc_failed}
+    # Self-test
+    case I2C.write(i2c, sensor, Config.self_test()) do
+      :ok ->
+        IO.puts("Self-test command sent")
+        # give the sensor time
+        :timer.sleep(300)
+
+        case I2C.read(i2c, sensor, 3) do
+          {:ok, <<msb, lsb, crc>>} ->
+            IO.puts("Self-test returned: #{inspect({msb, lsb, crc})}")
+            calculated_crc = CrcHelper.crc8(<<msb, lsb>>)
+            IO.puts("Calculated CRC: #{calculated_crc}")
+
+            if calculated_crc == crc do
+              {:ok, :test_passed}
+            else
+              IO.puts("CRC failed: calculated #{calculated_crc}, sensor returned #{crc}")
+              {:error, :crc_failed}
+            end
+
+          {:error, reason} ->
+            IO.puts("I2C read failed: #{inspect(reason)}")
+            {:error, {:i2c_write_read_failed, reason}}
+        end
+
+      {:error, reason} ->
+        IO.puts("Self-test write failed: #{inspect(reason)}")
+        {:error, {:i2c_write_read_failed, reason}}
     end
   end
 
