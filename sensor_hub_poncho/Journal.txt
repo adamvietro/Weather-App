@@ -1795,6 +1795,13 @@ Chapter 4 Publishing Sensor Data (47)
         end
 
     Creating the Phoenix Context Module
-        
-        
-    
+        Now we need the commands and code to instert any data to the database. This will be at: lib/weather_tracker/weather_conditions.ex and will be very simple as we don't need much from it. 
+        defmodule WeatherTracker.WeatherConditions do
+            alias WeatherTracker.{WeatherConditions.WeatherCondition, Repo}
+
+            def create_weather_condition(attrs) do
+                %WeatherCondition{}
+                |> WeatherCondition.create_changeset(attrs)
+                |> Repo.insert()
+            end
+        end
