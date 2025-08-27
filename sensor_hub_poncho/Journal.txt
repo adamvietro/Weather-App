@@ -1747,5 +1747,54 @@ Chapter 4 Publishing Sensor Data (47)
         This will setup the data table with the correct :atoms as names and will say what to do when we rool forward or what happens when we want to roll the database backwards. This will also make sure that we are running the timescale DB as the data table type.
             mix ecto.setup
 
+        This is where I ran into issues with the timescale not being installed so I went to this website and then followed all the instructions
+            https://docs.tigerdata.com/self-hosted/latest/install/installation-linux/
+
+    Creating our Ecto Schema
+        Now we need to set the way in which we add the correct values to the database. It will be in and called: 
+            sensor_hub_poncho/weather_tracker/lib/weather_tracker/weather_conditions/weather_condition.ex
+
+        defmodule WeatherTracker.WeatherConditions.WeatherCondition do
+            use Ecto.Schema
+            import Ecto.Changeset
+
+            @allowed_fields [
+                :temperature_c,
+                :pressure_pa,
+                :humidity_rh,
+                :light_lumens,
+                :voc_index,
+                :uv_index,
+                :als_lux
+            ]
+
+            @derive {Jason.Encoder, only: @allowed_fields}
+            @primary_key false
+
+            schema "weather_conditions" do
+                field :timestamp, :naive_datetime
+                field :temperature_c, :decimal
+                field :pressure_pa, :decimal
+                field :humidity_rh, :decimal
+                field :light_lumens, :decimal
+                field :voc_index, :decimal
+                field :uv_index, :decimal
+                field :als_lux, :decimal
+            end
+
+            def create_changset(weather_condition = %__MODULE__{}, attrs) do
+                timestamp =
+                NaiveDateTime.utc_now()
+                |> NaiveDateTime.truncate(:second)
+
+                weather_condition
+                |> cast(attrs, @allowed_fields)
+                |> validate_required(@allowed_fields)
+                |> put_change(:timestamp, timestamp)
+            end
+        end
+
+    Creating the Phoenix Context Module
+        
         
     
