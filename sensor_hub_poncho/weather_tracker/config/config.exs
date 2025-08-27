@@ -5,7 +5,7 @@
 # is restricted to this project.
 
 # General application configuration
-use Mix.Config
+import Config
 
 config :weather_tracker,
   ecto_repos: [WeatherTracker.Repo],

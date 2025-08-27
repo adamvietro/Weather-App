@@ -28,3 +28,6 @@ sensor_hub_poncho/sensor_hub/erl_crash.dump
 
 #_build
 /sensor_hub_poncho/_build/
+
+# Weather_Tracker senstive info
+sensor_hub_poncho/weather_tracker/config/prod.secret.exs

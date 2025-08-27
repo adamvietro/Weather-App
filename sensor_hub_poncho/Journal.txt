@@ -1745,5 +1745,7 @@ Chapter 4 Publishing Sensor Data (47)
             end
 
         This will setup the data table with the correct :atoms as names and will say what to do when we rool forward or what happens when we want to roll the database backwards. This will also make sure that we are running the timescale DB as the data table type.
+            mix ecto.setup
 
+        
     
