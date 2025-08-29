@@ -1,4 +1,4 @@
-defmodule WeatherTracker.WeatherConditions do
+defmodule WeatherTracker.WeatherConditionsController do
   use WeatherTrackerWeb, :controller
 
   require Logger

@@ -11,7 +11,6 @@ defmodule Publisher do
   def init(options) do
     state = %{
       interval: options[:interval] || 10_000,
-      # || "http://localhost:4000/api/weather-conditions"
       weather_tracker_url: options[:weather_tracker_url],
       sensors: options[:sensors],
       measurements: :no_measurements
@@ -33,7 +32,7 @@ defmodule Publisher do
   defp measure(state) do
     measurements =
       Enum.reduce(state.sensors, %{}, fn sensor, acc ->
-        sensor_data = sensor.read() |> sensor.convert.()
+        sensor_data = sensor.read.() |> sensor.convert.()
         Map.merge(acc, sensor_data)
       end)
 
