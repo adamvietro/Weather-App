@@ -30,8 +30,29 @@ defmodule SensorHub.Application do
       {Bme280, %{}},
       {SGP40, %{bus_name: "i2c-1", name: SGP40}},
       {TSL25911FN, %{}},
-      {LTR390_UV, %{}}
+      {LTR390_UV, %{}},
+      {Finch, name: WeatherTrackerClient},
+      {
+        Publisher,
+        %{
+          sensors: sensors(),
+          weather_tracker_url: weather_tracker_url()
+        }
+      }
     ]
+  end
+
+  defp sensors() do
+    [
+      Sensor.new(Bme280),
+      Sensor.new(SGP40),
+      Sensor.new(TSL25911FN),
+      Sensor.new(LTR390_UV)
+    ]
+  end
+
+  defp weather_tracker_url() do
+    Application.get_env(:sensor_hub, :weather_tracker_url)
   end
 
   # List all child processes to be supervised
