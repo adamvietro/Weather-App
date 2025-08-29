@@ -1805,3 +1805,59 @@ Chapter 4 Publishing Sensor Data (47)
                 |> Repo.insert()
             end
         end
+
+    Setting up the Phoenix API
+        SO for this next step we will build a POST handler that will add in the data from the sensor. This will not need a validator as we did that in the setps before. There is also not going to be covered is that because we will assume that eveything is on and from a trusted source.
+
+        We will create lib/weather_tracker_web/controllers/weather_conditions_controller.ex
+            defmodule WeatherTracker.WeatherConditions do
+                use WeatherTrackerWeb, :controller
+
+                require Logger
+
+                alias WeatherTracker.{
+                    WeatherConditions,
+                    WeatherConditions.WeatherCondition
+                }
+
+                def create(conn, params) do
+                    IO.inspect(params)
+                    case WeatherConditions.create_entry(params) do
+                    {:ok, weather_condition = %WeatherCondition{}} ->
+                        Logger.debug("Successfully created weather condition: #{inspect(weather_condition)}")
+
+                        conn
+                        |> put_status(:created)
+                        |> json(weather_condition)
+
+                    error ->
+                        Logger.warning("Failed to create weather condition: #{inspect(error)}")
+
+                        conn
+                        |> put_status(:unprocessable_entity)
+                        |> json(%{message: "Poorly formatted payload"})
+                    end
+                end
+            end 
+
+        Now we need to add an entry to the router.ex so that it will have a path to create the data-entry.
+            defmodule WeatherTrackerWeb.Router do
+                use WeatherTrackerWeb, :router
+
+                # Suppress Dialyzer warnings for call/2
+                @dialyzer {:nowarn_function, call: 2}
+
+                pipeline :api do
+                    plug(:accepts, ["json"])
+                end
+
+                scope "/api", WeatherTrackerWeb do
+                    pipe_through(:api)
+
+                    post "/weather-conditions", WeatherConditionsController, :create
+                end
+            end
+
+    Publishing Metrics
+        Now that we have the framework to add new entry to the db and have the route to do so we can now work on a publisher. Head back to the main sensor_hub_poncho and run.
+            mix new publisher
