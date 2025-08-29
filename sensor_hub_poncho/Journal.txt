@@ -1869,7 +1869,7 @@ Chapter 4 Publishing Sensor Data (47)
                 require Logger
 
                 def start_link(options \\ %{}) do
-                    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+                    GenServer.start_link(__MODULE__, options, name: __MODULE__)
                 end
 
                 @impl true
@@ -1935,6 +1935,10 @@ Chapter 4 Publishing Sensor Data (47)
 
     Hooking It into the Firmware Project
         Now we need to go back to the sensor_hub project to add the new modules into the children and set the entire project. We will need to add the publisher and make sure that it has access to the different sensors.
+            ...
+            alias SensoHub.Sensor
+            ...
+
             def children(_target) do
                 # This function returns the child processes to be supervised
                 # Here you can define the children for your application
@@ -1968,3 +1972,30 @@ Chapter 4 Publishing Sensor Data (47)
             end
 
         This is a lot of small things that do a lot. We are making sure that the publisher has access to all the sensors, we are adding in the finch with a name that will need to be refrenced in perious code. Also we are setting up a environmental bit of information that will be the location of the localhost of the pi.
+
+        Lastly we will need to set the enviromental value for the :weather_tracker_url this is done within the sensor_hub/config/target.exs
+            config :sensor_hub, :weather_tracker_url,
+                "http://<SERVER_IP_ADDRESS>:4000/api/weather-conditions"
+
+        Lastly lastly you need to set the dependencies for the new modules to the sensor_hub/mix.exs
+            defp deps do
+                [
+                    # Dependencies for all targets
+                    ...
+                    # Dependencies for all targets except :host
+                    {:publisher, path: "../publisher", targets: @all_targets},
+                    ...
+                    # Dependencies for specific targets
+                    ...
+                ]
+            end
+        
+        With all this in place 
+            mix firmware
+            mix ./upload.sh 192.168.xx.xx
+
+            ssh 192.168.xx.xx
+
+            # Once inside
+
+            RingLogger.attach()

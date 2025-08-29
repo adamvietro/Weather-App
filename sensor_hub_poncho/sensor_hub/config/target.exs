@@ -46,30 +46,33 @@ config :nerves_ssh,
 #
 # See https://github.com/nerves-networking/vintage_net for more information
 config :vintage_net,
-  regulatory_domain: "US", # Change to match your area
+  # Change to match your area
+  regulatory_domain: "US",
   config: [
-    {"eth0", %{
+    {"eth0",
+     %{
        type: VintageNetEthernet,
        ipv4: %{
          method: :dhcp
        }
      }},
     {"wlan0",
-      %{
-        type: VintageNetWiFi,
-        vintage_net_wifi: %{
-          networks: [
-            %{
-              key_mgmt: :wpa_psk,
-              ssid: "Vietro's(2)",
-              psk: "Racheldrive",
-            }
-          ]
-        },
-        ipv4: %{method: :dhcp},
-      }
-    }
+     %{
+       type: VintageNetWiFi,
+       vintage_net_wifi: %{
+         networks: [
+           %{
+             key_mgmt: :wpa_psk,
+             ssid: "Vietro's(2)",
+             psk: "Racheldrive"
+           }
+         ]
+       },
+       ipv4: %{method: :dhcp}
+     }}
   ]
+
+config :sensor_hub, :weather_tracker_url, "http://192.168.50.53:4000/api/weather-conditions"
 
 config :mdns_lite,
   # The `hosts` key specifies what hostnames mdns_lite advertises.  `:hostname`
