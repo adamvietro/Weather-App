@@ -15,7 +15,6 @@ config :weather_tracker, WeatherTracker.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-# config/dev.exs
 config :weather_tracker, WeatherTrackerWeb.Endpoint,
   http: [ip: {0, 0, 0, 0}, port: 4000],
   debug_errors: true,

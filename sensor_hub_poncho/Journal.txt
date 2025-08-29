@@ -1799,7 +1799,7 @@ Chapter 4 Publishing Sensor Data (47)
         defmodule WeatherTracker.WeatherConditions do
             alias WeatherTracker.{WeatherConditions.WeatherCondition, Repo}
 
-            def create_weather_condition(attrs) do
+            def create_entry(attrs) do
                 %WeatherCondition{}
                 |> WeatherCondition.create_changeset(attrs)
                 |> Repo.insert()
@@ -1991,6 +1991,12 @@ Chapter 4 Publishing Sensor Data (47)
             end
         
         With all this in place 
+            # Make sure that from weather_tracker run
+            docker compose up -d
+
+            # From weather_tracker run
+            mix phx.server
+
             mix firmware
             mix ./upload.sh 192.168.xx.xx
 

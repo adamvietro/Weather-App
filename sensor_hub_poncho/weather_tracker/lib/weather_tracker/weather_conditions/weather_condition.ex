@@ -26,7 +26,7 @@ defmodule WeatherTracker.WeatherConditions.WeatherCondition do
     field :als_lux, :decimal
   end
 
-  def create_changset(weather_condition = %__MODULE__{}, attrs) do
+  def create_changeset(weather_condition = %__MODULE__{}, attrs) do
     timestamp =
       NaiveDateTime.utc_now()
       |> NaiveDateTime.truncate(:second)
