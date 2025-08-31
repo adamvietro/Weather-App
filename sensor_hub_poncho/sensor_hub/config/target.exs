@@ -72,7 +72,7 @@ config :vintage_net,
      }}
   ]
 
-config :sensor_hub, :weather_tracker_url, "http://172.27.4.112:4000/api/weather-conditions"
+config :sensor_hub, :weather_tracker_url, "http://192.168.50.74:4000/api/weather-conditions"
 
 config :mdns_lite,
   # The `hosts` key specifies what hostnames mdns_lite advertises.  `:hostname`

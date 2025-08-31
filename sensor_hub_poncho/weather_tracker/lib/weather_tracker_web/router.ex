@@ -1,9 +1,6 @@
 defmodule WeatherTrackerWeb.Router do
   use WeatherTrackerWeb, :router
 
-  # Suppress Dialyzer warnings for call/2
-  @dialyzer {:nowarn_function, call: 2}
-
   pipeline :api do
     plug(:accepts, ["json"])
   end

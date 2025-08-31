@@ -3,6 +3,15 @@ import Config
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
 # when generating URLs.
+
+config :weather_tracker, WeatherTracker.Repo,
+  username: "postgres",
+  password: "postgres",
+  database: "weather_tracker_dev",
+  hostname: "localhost",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
 #
 # Note we also include the path to a cache manifest
 # containing the digested version of static files. This
@@ -10,11 +19,19 @@ import Config
 # which you should run after static files are built and
 # before starting your production server.
 config :weather_tracker, WeatherTrackerWeb.Endpoint,
-  url: [host: "example.com", port: 80],
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  http: [ip: {0, 0, 0, 0}, port: 4000],
+  debug_errors: true,
+  code_reloader: true,
+  check_origin: false,
+  watchers: []
 
 # Do not print debug messages in production
 config :logger, level: :info
+
+config :phoenix, :stacktrace_depth, 20
+
+# Initialize plugs at runtime for faster development compilation
+config :phoenix, :plug_init_mode, :runtime
 
 # ## SSL Support
 #
