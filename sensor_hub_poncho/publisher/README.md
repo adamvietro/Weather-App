@@ -1,21 +1,20 @@
 # Publisher
 
-**TODO: Add description**
+## Project Overview
 
-## Installation
+The **Publisher** is responsible for reading sensor data from the Raspberry Pi and sending it to the `weather_tracker` Phoenix API.  
+It runs on the Pi and handles:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `publisher` to your list of dependencies in `mix.exs`:
+- Periodic sensor measurements
+- Formatting data as JSON
+- Sending HTTP POST requests to the API endpoint
 
-```elixir
-def deps do
-  [
-    {:publisher, "~> 0.1.0"}
-  ]
-end
-```
+This allows the `weather_tracker` backend to store and analyze environmental data in real-time.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/publisher>.
+## Requirements
 
+- Raspberry Pi (tested on Pi 3A+)
+- Elixir >= 1.14
+- Erlang/OTP >= 25
+- Nerves for firmware builds
+- Network access to the `weather_tracker` server
