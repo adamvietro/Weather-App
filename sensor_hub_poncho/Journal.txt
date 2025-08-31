@@ -2005,3 +2005,27 @@ Chapter 4 Publishing Sensor Data (47)
             # Once inside
 
             RingLogger.attach()
+
+    Getting the Pi to be able to work with the main computer.
+        First to be sure that the phoenix is listening on the right addresses by adding 
+            config :weather_tracker, WeatherTrackerWeb.Endpoint,
+              http: [ip: {0, 0, 0, 0}, port: 4000]
+
+        If that worked you are done and can check that it is working by running.
+            ss -tuln | grep 4000   # on WSL
+            netstat -ano | findstr :4000   # on Windows
+
+            This should return all the addresses that the instance is listening on. You should see the pi on windows and the windows pc on the WSL instance
+
+        If you are still getting an issue you might need to add in a rule for incomming connections on the correct port.
+            netsh advfirewall firewall add rule name="Allow Phoenix 4000" dir=in action=allow protocol=TCP localport=4000
+
+        You might still need to deal with the issues with a WSL instance being run on a windows computer.
+            netsh interface portproxy add v4tov4 listenaddress=192.168.xx.xx listenport=4000 connectaddress=172.27.xx.xx connectport=4000
+            # First address is the windows ip address and the second is the ip address for the WSL instance on the windows machine
+
+            This did a few things 
+                This set up a proxy for the IPv4 traffic
+                Tells the computer on windows that anything that comes in on the address Windows where to forward it on WSL
+
+                This was one of the most important things that happened as it made sure that all traffic is forwarded.
