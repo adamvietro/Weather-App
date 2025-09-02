@@ -2029,3 +2029,36 @@ Chapter 4 Publishing Sensor Data (47)
                 Tells the computer on windows that anything that comes in on the address Windows where to forward it on WSL
 
                 This was one of the most important things that happened as it made sure that all traffic is forwarded.
+
+Chapter 5 Putting It All Together (63)
+    Adding Grafana to Docker Compose
+        We now need to add in the Grafana user interface so that we can see a more user friendly version of the data. navigate back to the docker-compose.yml and add this.
+            services:
+                postgres:
+                    ...
+                grafana:
+                    image: grafana/grafana:8.0.5
+                    depends_on:
+                    - postgres
+                    ports:
+                    - '3000:3000'
+                    volumes:
+                        - grafana-data:/var/lib/grafana
+            volumes:
+                ...
+                grafana-data: {}
+
+        We now can stop and start the docker container. I ran into an issue here as we never created the database weather_tracker_dev. So I quicky verified if it was created
+            docker exec -it <container> psql -U postgres
+            # \l
+
+            then ran 
+            # CREATE DATABASE weather_tracker_dev;
+
+            from within the database.
+
+        Once we are back and both the db and Gafana are running we can now configre the Grafana UI.
+            We need to add a data source (Docker) and then fill out the form as needed.
+
+        With the database connect to Grafana we should at least try and query the data before we make a UI. Head to explore and lets try a query
+            
