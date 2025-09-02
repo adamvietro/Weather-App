@@ -2061,4 +2061,33 @@ Chapter 5 Putting It All Together (63)
             We need to add a data source (Docker) and then fill out the form as needed.
 
         With the database connect to Grafana we should at least try and query the data before we make a UI. Head to explore and lets try a query
-            
+            Ran into issue here with the database being live on the host machine but the grafana and docker not seeing the right database for weather_conditions
+                # This will reset the password for the grafana UI
+                docker exec -it <grafana_container_name> grafana-cli admin reset-admin-password <newpassword>
+
+            To deal with this we need to check to make sure the container is up
+                docker ps
+
+            Then we want to go into the docker container with this command
+                docker exec -it weather_tracker-postgres-1 psql -U postgres -d weather_tracker_dev
+                
+                # to see all the databases
+                \dt
+
+                # To check the local version
+                psql -U postgres -d weather_tracker_dev
+
+            This was an issue so I did a lot of reasearch and found out that using localhost as the host in Grafana was causing issues as it was trying to find a host within its own "local" area. As docker will create its own container it wouldn't find it. replacing grafana:5432 with
+                weather_tracker-postgres-1:5432
+
+                it now watches the right place for the weather_conditions
+
+            We can now look at a graph of all the values as we update them
+                Just be sure that:
+                Time column: "timestamp"
+                SELECT -> Column: <data type>
+                WHERE -> Macro: $_timeFilter
+                FROM: weather_conditions
+
+    Creating a Weather Dashboard
+        

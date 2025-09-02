@@ -73,7 +73,7 @@ defmodule TSL25911FN.Config do
     {:it_600_ms, :max} => 0.0864
   }
 
-  def to_lumens(%{int_time: it, gain: gain}, ch0, ch1) do
+  def to_lumens(%{int_time: it, gain: gain} = config, ch0, ch1) do
     key = {it, gain}
 
     factor =
@@ -81,6 +81,15 @@ defmodule TSL25911FN.Config do
         raise ArgumentError, "Unsupported integration_time/gain combination: #{inspect(key)}"
 
     lux = ch0 - ch1
-    %{light_lumens: max(lux * factor, 0.0)}
+    light_lumens = max(lux * factor, 0.0)
+
+    Logger.debug("""
+    [TSL25911FN] Raw channels: ch0=#{ch0}, ch1=#{ch1}
+    [TSL25911FN] Difference (ch0 - ch1): #{lux}
+    [TSL25911FN] Integration time: #{inspect(it)}, Gain: #{inspect(gain)}
+    [TSL25911FN] Factor: #{factor}, Light lumens: #{light_lumens}
+    """)
+
+    %{light_lumens: light_lumens}
   end
 end
