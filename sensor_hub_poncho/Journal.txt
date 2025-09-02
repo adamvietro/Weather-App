@@ -2090,4 +2090,20 @@ Chapter 5 Putting It All Together (63)
                 FROM: weather_conditions
 
     Creating a Weather Dashboard
-        
+        There are a lot of built-in ways to create a dashboard within Grafana so let's get started.
+
+        Adding a Stat Panel
+            First start by adding in a row called Current Measurements
+
+            Then add in each data type as a Empty Panel then the type will be either a:
+                Stat
+                Gauge
+                Time Series
+
+            For each think about:
+                Max min for values
+                Units
+                Thresholds
+                Title
+
+    That is it you have done it. I want to try and create a site for this so I will work on that next.
