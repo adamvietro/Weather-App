@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather Tracker</title>
+    <!-- Auto-refresh every 10 seconds -->
+  <meta http-equiv="refresh" content="10">
+</head>
+<body>
+  <%= @inner_content %>
+</body>
+</html>

@@ -9,7 +9,7 @@ defmodule WeatherTrackerWeb.WeatherConditionsController do
   }
 
   def create(conn, params) do
-    IO.inspect(params)
+    # IO.inspect(params)
     case WeatherConditions.create_entry(params) do
       {:ok, weather_condition = %WeatherCondition{}} ->
         Logger.debug("Successfully created weather condition: #{inspect(weather_condition)}")

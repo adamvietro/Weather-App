@@ -38,7 +38,7 @@ config :weather_tracker, WeatherTrackerWeb.Endpoint,
 #
 #     https: [
 #       port: 4001,
-#       cipher_suite: :strong,
+#       cipher_suite: :strong,P
 #       keyfile: "priv/cert/selfsigned_key.pem",
 #       certfile: "priv/cert/selfsigned.pem"
 #     ],

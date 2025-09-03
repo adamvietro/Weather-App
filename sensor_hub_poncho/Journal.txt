@@ -2107,3 +2107,147 @@ Chapter 5 Putting It All Together (63)
                 Title
 
     That is it you have done it. I want to try and create a site for this so I will work on that next.
+
+Setting up the framework for Deployment.
+    So for turning what we have made into something that can de accessed by any pi (that has the right access) we need to turn something that was the most basic version of a Phoenix into something that will be able to display html as well as get all the new dependencies. I'll be breaking this into all the parts of the needed new code and changes to the older code. While doing this we want to keep as much of the older code working as possible so we can continue to watch and monitor the weather conditions.
+
+    # For this we needed to add in the dep for phoenix.html.
+    mix.exs
+        defp deps do 
+        [
+            ...
+            {:phoenix_html, "~> 3.2"},
+        ]
+
+    # After adding this line be sure to run `mix deps.get'
+
+    # Now that we have the right deps we need to add in the right function to get the values from the DB.
+    lib/weather_tracker/weather_conditions.ex
+        def get_latest_entries(limit \\ 10) do
+            WeatherCondition
+            |> order_by(desc: :timestamp)
+            |> limit(^limit)
+            |> Repo.all()
+        end
+
+    # Now that we have the function to get the data from the server we need to create the controller to use that.
+    lib/weather_tracker_web/controllers/dashboard_controller.ex
+        defmodule WeatherTrackerWeb.DashboardController do
+            require Logger
+
+            use WeatherTrackerWeb, :controller
+            alias WeatherTracker.WeatherConditions
+
+            def index(conn, params) do
+                limit = Map.get(params, "limit", 10)
+
+                weather_conditions =
+                WeatherConditions.get_latest_entries(limit)
+
+                Logger.debug("Fetching latest weather conditions: #{inspect(hd(weather_conditions))}")
+                render(conn, "index.html", weather_conditions: weather_conditions)
+            end
+        end
+
+    # Now that we have the controller we need to add the path to use said controller.
+    lib/weather_tracker_web/router.ex
+        ...
+        pipeline :browser do
+            plug(:accepts, ["html"])
+            plug(:fetch_session)
+            plug(:fetch_flash)
+            plug(:protect_from_forgery)
+            plug(:put_secure_browser_headers)
+        end
+        ...
+
+        scope "/", WeatherTrackerWeb do
+            pipe_through(:browser)
+
+            get("/", DashboardController, :index)
+        end
+
+    # Now that we have the path we need to create the html.eex so that we can display it. This will be updated
+    # at an other time so that it looks far better.
+    lib/weather_tracker_web/templates/dashboard/index.html.eex
+        <h1>Weather Dashboard</h1>
+
+        <table>
+        <thead>
+            <tr>
+            <th>Time</th>
+            <th>Temperature (°C)</th>
+            <th>VOC Index</th>
+            <th>Light (lumens)</th>
+            <th>Humidity (%)</th>
+            <th>UV Index</th>
+            <th>ALS Lux</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%= for wc <- @weather_conditions do %>
+            <tr>
+                <td><%= wc.timestamp %></td>
+                <td><%= wc.temperature_c %></td>
+                <td><%= wc.voc_index %></td>
+                <td><%= wc.light_lumens %></td>
+                <td><%= wc.humidity_rh %></td>
+                <td><%= wc.uv_index %></td>
+                <td><%= wc.als_lux %></td>
+            </tr>
+            <% end %>
+        </tbody>
+        </table>
+        <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        </style>
+
+
+    # Now that we have the html to render the information we need to add in a few files to make sure that phoenix knows where to go to get all the information. 
+    
+    # First is the dashboard_view that will tell the router where to look.
+    lib/weather_tracker_web/views/dashboard_view.ex
+        defmodule WeatherTrackerWeb.DashboardView do
+            use WeatherTrackerWeb, :view
+        end
+
+    # Next we need a general view for the entire site that will add in some metadata.
+    lib/weather_tracker_web/templates/layout/app.html.eex
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Weather Tracker</title>
+            <!-- Auto-refresh every 10 seconds -->
+            <meta http-equiv="refresh" content="10">
+        </head>
+        <body>
+            <%= @inner_content %>
+        </body>
+        </html>
+
+    # Lastly we need to add in a layout_view so that we know where to look for views.
+    lib/weather_tracker_web/views/layout_view.ex
+        defmodule WeatherTrackerWeb.LayoutView do
+            use WeatherTrackerWeb, :view
+        end
+
+
+    
