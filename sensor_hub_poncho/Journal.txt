@@ -2006,29 +2006,58 @@ Chapter 4 Publishing Sensor Data (47)
 
             RingLogger.attach()
 
-    Getting the Pi to be able to work with the main computer.
-        First to be sure that the phoenix is listening on the right addresses by adding 
-            config :weather_tracker, WeatherTrackerWeb.Endpoint,
-              http: [ip: {0, 0, 0, 0}, port: 4000]
+    Getting the Pi to Work with the Main Computer
+        Configure Phoenix to listen on all addresses
+            In your Phoenix config:
+                config :weather_tracker, WeatherTrackerWeb.Endpoint,
+                http: [ip: {0, 0, 0, 0}, port: 4000]
 
-        If that worked you are done and can check that it is working by running.
-            ss -tuln | grep 4000   # on WSL
-            netstat -ano | findstr :4000   # on Windows
+            This allows Phoenix to accept connections from any IP, not just localhost.
 
-            This should return all the addresses that the instance is listening on. You should see the pi on windows and the windows pc on the WSL instance
+        Verify what Phoenix is actually listening on
+            On WSL:
+                ss -tuln | grep 4000
 
-        If you are still getting an issue you might need to add in a rule for incomming connections on the correct port.
+            On Windows:
+                netstat -ano | findstr :4000
+
+            Important:
+                Seeing 127.0.0.1:4000 means Phoenix is only reachable locally.
+                You must see 0.0.0.0:4000 for external devices (like the Pi) to connect.
+
+        Allow incoming connections through Windows Firewall
             netsh advfirewall firewall add rule name="Allow Phoenix 4000" dir=in action=allow protocol=TCP localport=4000
 
-        You might still need to deal with the issues with a WSL instance being run on a windows computer.
-            netsh interface portproxy add v4tov4 listenaddress=192.168.xx.xx listenport=4000 connectaddress=172.27.xx.xx connectport=4000
-            # First address is the windows ip address and the second is the ip address for the WSL instance on the windows machine
+        Deal with WSL port exposure
+            Phoenix listening on 0.0.0.0 inside WSL does NOT automatically expose the port to the LAN. You need to forward traffic from Windows to WSL using a port proxy:
 
-            This did a few things 
-                This set up a proxy for the IPv4 traffic
-                Tells the computer on windows that anything that comes in on the address Windows where to forward it on WSL
+            netsh interface portproxy add v4tov4 ^
+            listenaddress=0.0.0.0 listenport=4000 ^
+            connectaddress=WSL_IP connectport=4000
 
-                This was one of the most important things that happened as it made sure that all traffic is forwarded.
+
+            listenaddress=0.0.0.0 exposes the port to the entire LAN.
+            
+            connectaddress is the WSL eth0 IP (ip addr show eth0) — note this may change on reboot.
+
+        This step ensures Windows forwards any LAN traffic to WSL, making Phoenix reachable from other devices.
+        
+        Test connectivity from the Pi
+            In an Elixir shell on the Pi:
+                :gen_tcp.connect('WINDOWS_IP', 4000, [], 5_000)
+
+                {:ok, socket} means networking is correctly set up.
+
+                {:error, :timeout} indicates Windows is not listening on the LAN (check steps 2–4).
+
+        Rule of Thumb:
+            If netstat on Windows does not show 0.0.0.0:4000, the Pi will never connect.
+
+        Summary:
+            Phoenix must listen on all addresses (0.0.0.0).
+            Windows Firewall must allow the port.
+            WSL requires a port proxy for external traffic.
+            Verify connectivity from the Pi using a raw TCP test before debugging Phoenix itself.
 
 Chapter 5 Putting It All Together (63)
     Adding Grafana to Docker Compose
@@ -2250,4 +2279,24 @@ Setting up the framework for Deployment.
         end
 
 
+
     
+Find WSL's current IP (run inside WSL):
+ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
+
+Note the IP (e.g., 172.27.4.112)
+
+Update the port proxy rule (run in Admin PowerShell on Windows):
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=4000
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=4000 connectaddress=<NEW_WSL_IP> connectport=4000
+
+Replace <NEW_WSL_IP> with the IP from step 1.
+
+Verify it worked:
+netsh interface portproxy show all
+Should show the new mapping.
+
+Why this happens: WSL's IP address (172.27.x.x) can change when Windows restarts. The port proxy rule gets "stale" and stops forwarding traffic. The Pi's requests timeout because Windows no longer knows where to send them.
+
+The config update you need to make now (one-time):
+Update sensor_hub/config/target.exs from host.docker.internal to your Windows IP (192.168.1.123), then rebuild firmware. That part stays the same—it's just the Windows port proxy that needs refreshing after reboots.

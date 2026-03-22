@@ -1,5 +1,6 @@
 defmodule WeatherTrackerWeb.Router do
   use WeatherTrackerWeb, :router
+  import Phoenix.Controller
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -16,6 +17,7 @@ defmodule WeatherTrackerWeb.Router do
   scope "/", WeatherTrackerWeb do
     pipe_through(:browser)
 
+    get("/", PageController, :index)
     get("/dashboard", DashboardController, :index)
   end
 

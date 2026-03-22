@@ -80,7 +80,14 @@ defmodule TSL25911FN.Config do
       Map.get(@to_lumens_factor, key) ||
         raise ArgumentError, "Unsupported integration_time/gain combination: #{inspect(key)}"
 
-    lux = ch0 - ch1
+    lux =
+      if ch0 == 0 do
+        0.0
+      else
+        ratio = ch1 / ch0
+        (ch0 - ch1) * (1 - ratio)
+      end
+
     light_lumens = max(lux * factor, 0.0)
 
     Logger.debug("""
