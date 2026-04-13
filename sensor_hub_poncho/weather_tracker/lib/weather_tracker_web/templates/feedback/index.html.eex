@@ -80,7 +80,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :temperature_c, temperature_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:temperature_c) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :temperature_c), temperature_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -108,7 +108,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :humidity_rh, humidity_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:humidity_rh) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :humidity_rh), humidity_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -136,7 +136,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :voc_index, voc_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:voc_index) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :voc_index), voc_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -164,7 +164,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :uv_index, uv_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:uv_index) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :uv_index), uv_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -192,7 +192,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :als_lux, als_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:als_lux) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :als_lux), als_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -220,7 +220,7 @@
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :light_lumens, light_ranges(), 320, 140) %>"
-          stroke="<%= line_color_for_field(:light_lumens) %>"
+          stroke="<%= chart_color(latest_metric(@weather_conditions, :light_lumens), light_ranges()) %>"
           stroke-width="3"
           stroke-linecap="round"
           stroke-linejoin="round"

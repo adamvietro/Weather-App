@@ -1,5 +1,6 @@
 defmodule TSL25911FN.Config do
   import Bitwise
+  require Logger
 
   defstruct gain: :low,
             int_time: :it_100_ms,

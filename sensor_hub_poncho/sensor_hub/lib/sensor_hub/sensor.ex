@@ -20,8 +20,10 @@ defmodule SensorHub.Sensor do
 
   def read_fn(SGP40) do
     fn ->
-      {:ok, %SGP40.Measurement{voc_index: voc}} = SGP40.measure(SGP40)
-      %{voc_index: voc}
+      case SGP40.measure(SGP40) do
+        {:ok, %SGP40.Measurement{voc_index: voc}} -> %{voc_index: voc}
+        {:error, reason} -> %{voc_index: reason}
+      end
     end
   end
 

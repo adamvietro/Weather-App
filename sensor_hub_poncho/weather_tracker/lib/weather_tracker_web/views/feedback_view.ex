@@ -12,7 +12,7 @@ defmodule WeatherTrackerWeb.FeedbackView do
 
   def humidity_ranges do
     [
-      %{level: :low, min: nil, max: 29.9, color: "blue"},
+      %{level: :low, min: 10.0, max: 29.9, color: "blue"},
       %{level: :normal, min: 30.0, max: 60.0, color: "green"},
       %{level: :high, min: 60.1, max: 70.0, color: "yellow"},
       %{level: :highest, min: 70.1, max: nil, color: "red"}
