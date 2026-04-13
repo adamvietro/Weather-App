@@ -112,7 +112,8 @@ config :mdns_lite,
   ]
 
 config :nerves_time,
-  servers: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"]
+  servers: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"],
+  wait_for_network: true
 
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

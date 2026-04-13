@@ -1,5 +1,8 @@
 <div class="dashboard">
-  <h1>Weather Dashboard</h1>
+    <div class="dashboard-header">
+    <h1>Weather Dashboard</h1>
+    <%= render WeatherTrackerWeb.FeedbackView, "_information.html", assigns %>
+    </div>
 
   <% latest = List.last(@weather_conditions) %>
 
@@ -59,6 +62,7 @@
           <%= status_label(latest.light_lumens, light_ranges()) %>
         </span>
       </div>
+
     </div>
   <% end %>
 
@@ -456,21 +460,142 @@
     color: #6b7280;
   }
 
-  .border-blue { border-color: #93c5fd; }
-  .border-green { border-color: #86efac; }
-  .border-yellow { border-color: #fcd34d; }
-  .border-red { border-color: #fda4af; }
-  .border-gray { border-color: #d1d5db; }
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
 
-  .badge-blue { background: #dbeafe; color: #1d4ed8; }
-  .badge-green { background: #d1fae5; color: #047857; }
-  .badge-yellow { background: #fef3c7; color: #b45309; }
-  .badge-red { background: #ffe4e6; color: #be123c; }
-  .badge-gray { background: #f3f4f6; color: #4b5563; }
+  .help-bubble {
+    position: relative;
+  }
 
-  .fill-blue { background: #3b82f6; }
-  .fill-green { background: #10b981; }
-  .fill-yellow { background: #f59e0b; }
-  .fill-red { background: #f43f5e; }
-  .fill-gray { background: #9ca3af; }
+  .help-bubble summary {
+    list-style: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: #111827;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .help-bubble summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .help-panel {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    width: 320px;
+    max-width: 90vw;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    z-index: 20;
+  }
+
+  .help-panel h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+
+  .help-item {
+    margin-bottom: 12px;
+  }
+
+  .help-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .help-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #111827;
+  }
+
+  .help-item p {
+    margin: 2px 0;
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.4;
+  }
+
+  .border-blue {
+    border-color: #93c5fd;
+  }
+
+  .border-green {
+    border-color: #86efac;
+  }
+
+  .border-yellow {
+    border-color: #fcd34d;
+  }
+
+  .border-red {
+    border-color: #fda4af;
+  }
+
+  .border-gray {
+    border-color: #d1d5db;
+  }
+
+  .badge-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .badge-green {
+    background: #d1fae5;
+    color: #047857;
+  }
+
+  .badge-yellow {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .badge-red {
+    background: #ffe4e6;
+    color: #be123c;
+  }
+
+  .badge-gray {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+
+  .fill-blue {
+    background: #3b82f6;
+  }
+
+  .fill-green {
+    background: #10b981;
+  }
+
+  .fill-yellow {
+    background: #f59e0b;
+  }
+
+  .fill-red {
+    background: #f43f5e;
+  }
+
+  .fill-gray {
+    background: #9ca3af;
+  }
 </style>

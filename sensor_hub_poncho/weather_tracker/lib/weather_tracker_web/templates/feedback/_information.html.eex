@@ -1,0 +1,15 @@
+<details class="help-bubble">
+  <summary>?</summary>
+
+  <div class="help-panel">
+    <h3>Sensor Guide</h3>
+
+    <%= for item <- WeatherTrackerWeb.FeedbackInformation.sensor_help_items() do %>
+      <div class="help-item">
+        <strong><%= item.title %></strong>
+        <p><%= item.description %></p>
+        <p><em>Normal:</em> <%= item.normal %></p>
+      </div>
+    <% end %>
+  </div>
+</details>

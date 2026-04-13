@@ -3,6 +3,7 @@ defmodule WeatherTrackerWeb.FeedbackController do
 
   use WeatherTrackerWeb, :controller
   alias WeatherTracker.WeatherConditions
+  alias WeatherTrackerWeb.FeedbackInformation
 
   def index(conn, params) do
     limit = Map.get(params, "limit", 10)
