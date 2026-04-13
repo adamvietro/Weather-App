@@ -88,7 +88,7 @@ defmodule TSL25911FN.Config do
         (ch0 - ch1) * (1 - ratio)
       end
 
-    light_lumens = max(lux * factor, 0.0)
+    light_lumens = max(abs(lux * factor), 0.0)
 
     Logger.debug("""
     [TSL25911FN] Raw channels: ch0=#{ch0}, ch1=#{ch1}
