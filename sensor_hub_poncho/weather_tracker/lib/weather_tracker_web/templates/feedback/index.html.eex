@@ -1,0 +1,373 @@
+<div class="dashboard">
+  <h1>Weather Dashboard</h1>
+
+  <% latest = List.last(@weather_conditions) %>
+
+  <%= if latest do %>
+    <div class="summary-grid">
+      <div class="metric-card <%= border_class(latest.temperature_c, temperature_ranges()) %>">
+        <p class="metric-label">Temperature</p>
+        <p class="metric-value"><%= format_value(latest.temperature_c) %> °C</p>
+        <span class="metric-badge <%= badge_class(latest.temperature_c, temperature_ranges()) %>">
+          <%= status_label(latest.temperature_c, temperature_ranges()) %>
+        </span>
+      </div>
+
+      <div class="metric-card <%= border_class(latest.humidity_rh, humidity_ranges()) %>">
+        <p class="metric-label">Humidity</p>
+        <p class="metric-value"><%= format_value(latest.humidity_rh) %> %</p>
+        <span class="metric-badge <%= badge_class(latest.humidity_rh, humidity_ranges()) %>">
+          <%= status_label(latest.humidity_rh, humidity_ranges()) %>
+        </span>
+
+        <div class="meter">
+          <div
+            class="meter-fill <%= fill_class(latest.humidity_rh, humidity_ranges()) %>"
+            style="width: <%= clamp_percent(latest.humidity_rh, 0.0, 100.0) %>%"
+          ></div>
+        </div>
+      </div>
+
+      <div class="metric-card <%= border_class(latest.voc_index, voc_ranges()) %>">
+        <p class="metric-label">VOC Index</p>
+        <p class="metric-value"><%= format_value(latest.voc_index) %></p>
+        <span class="metric-badge <%= badge_class(latest.voc_index, voc_ranges()) %>">
+          <%= status_label(latest.voc_index, voc_ranges()) %>
+        </span>
+      </div>
+
+      <div class="metric-card <%= border_class(latest.uv_index, uv_ranges()) %>">
+        <p class="metric-label">UV Index</p>
+        <p class="metric-value"><%= format_value(latest.uv_index) %></p>
+        <span class="metric-badge <%= badge_class(latest.uv_index, uv_ranges()) %>">
+          <%= status_label(latest.uv_index, uv_ranges()) %>
+        </span>
+      </div>
+
+      <div class="metric-card <%= border_class(latest.als_lux, als_ranges()) %>">
+        <p class="metric-label">ALS Lux</p>
+        <p class="metric-value"><%= format_value(latest.als_lux) %></p>
+        <span class="metric-badge <%= badge_class(latest.als_lux, als_ranges()) %>">
+          <%= status_label(latest.als_lux, als_ranges()) %>
+        </span>
+      </div>
+
+      <div class="metric-card <%= border_class(latest.light_lumens, light_ranges()) %>">
+        <p class="metric-label">Light</p>
+        <p class="metric-value"><%= format_value(latest.light_lumens) %> lumens</p>
+        <span class="metric-badge <%= badge_class(latest.light_lumens, light_ranges()) %>">
+          <%= status_label(latest.light_lumens, light_ranges()) %>
+        </span>
+      </div>
+    </div>
+  <% end %>
+
+  <h2>Recent Readings</h2>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">Temperature</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :temperature_c)) %> °C</p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :temperature_c), temperature_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :temperature_c), temperature_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :temperature_c, temperature_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:temperature_c) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :temperature_c, temperature_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :temperature_c, temperature_ranges()) %></span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">Humidity</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :humidity_rh)) %> %</p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :humidity_rh), humidity_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :humidity_rh), humidity_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :humidity_rh, humidity_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:humidity_rh) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :humidity_rh, humidity_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :humidity_rh, humidity_ranges()) %></span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">VOC</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :voc_index)) %></p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :voc_index), voc_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :voc_index), voc_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :voc_index, voc_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:voc_index) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :voc_index, voc_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :voc_index, voc_ranges()) %></span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">UV</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :uv_index)) %></p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :uv_index), uv_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :uv_index), uv_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :uv_index, uv_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:uv_index) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :uv_index, uv_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :uv_index, uv_ranges()) %></span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">ALS Lux</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :als_lux)) %></p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :als_lux), als_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :als_lux), als_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :als_lux, als_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:als_lux) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :als_lux, als_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :als_lux, als_ranges()) %></span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <p class="chart-label">Light</p>
+          <p class="chart-value"><%= format_value(latest_metric(@weather_conditions, :light_lumens)) %></p>
+        </div>
+        <span class="value-pill <%= badge_class(latest_metric(@weather_conditions, :light_lumens), light_ranges()) %>">
+          <%= status_label(latest_metric(@weather_conditions, :light_lumens), light_ranges()) %>
+        </span>
+      </div>
+
+      <svg viewBox="0 0 320 140" class="chart-svg">
+        <polyline
+          fill="none"
+          points="<%= chart_points_with_ranges(@weather_conditions, :light_lumens, light_ranges(), 320, 140) %>"
+          stroke="<%= line_color_for_field(:light_lumens) %>"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+
+      <div class="chart-range">
+        <span>Min: <%= chart_min_with_ranges(@weather_conditions, :light_lumens, light_ranges()) %></span>
+        <span>Max: <%= chart_max_with_ranges(@weather_conditions, :light_lumens, light_ranges()) %></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    color: #1f2937;
+  }
+
+  h1 {
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    margin-top: 32px;
+    margin-bottom: 16px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  }
+
+  .metric-label {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .metric-value {
+    margin: 10px 0 12px;
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  .metric-badge,
+  .value-pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .meter {
+    margin-top: 14px;
+    width: 100%;
+    height: 10px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .chart-label {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .chart-value {
+    margin: 6px 0 0;
+    font-size: 26px;
+    font-weight: bold;
+    color: #111827;
+  }
+
+  .chart-svg {
+    width: 100%;
+    height: 160px;
+    display: block;
+    background: #f9fafb;
+    border-radius: 12px;
+  }
+
+  .chart-range {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .border-blue { border-color: #93c5fd; }
+  .border-green { border-color: #86efac; }
+  .border-yellow { border-color: #fcd34d; }
+  .border-red { border-color: #fda4af; }
+  .border-gray { border-color: #d1d5db; }
+
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #d1fae5; color: #047857; }
+  .badge-yellow { background: #fef3c7; color: #b45309; }
+  .badge-red { background: #ffe4e6; color: #be123c; }
+  .badge-gray { background: #f3f4f6; color: #4b5563; }
+
+  .fill-blue { background: #3b82f6; }
+  .fill-green { background: #10b981; }
+  .fill-yellow { background: #f59e0b; }
+  .fill-red { background: #f43f5e; }
+  .fill-gray { background: #9ca3af; }
+</style>

@@ -4,7 +4,7 @@ defmodule TSL25911FN.Comm do
 
   import Bitwise
 
-  @command_bit 0x80
+  @command_bit 0xA0
   @enable_register 0x00
   @control_register 0x01
   @als_data_register 0x14

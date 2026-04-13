@@ -19,6 +19,7 @@ defmodule WeatherTrackerWeb.Router do
 
     get("/", PageController, :index)
     get("/dashboard", DashboardController, :index)
+    get("/feedback", FeedbackController, :index)
   end
 
   scope "/api", WeatherTrackerWeb do
