@@ -76,7 +76,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :temperature_c, temperature_ranges()) %>
+      <% normal_low = normal_min(temperature_ranges()) %>
+      <% normal_high = normal_max(temperature_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :temperature_c, temperature_ranges(), 320, 140) %>"
@@ -104,7 +120,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :humidity_rh, humidity_ranges()) %>
+      <% normal_low = normal_min(humidity_ranges()) %>
+      <% normal_high = normal_max(humidity_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :humidity_rh, humidity_ranges(), 320, 140) %>"
@@ -132,7 +164,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :voc_index, voc_ranges()) %>
+      <% normal_low = normal_min(voc_ranges()) %>
+      <% normal_high = normal_max(voc_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :voc_index, voc_ranges(), 320, 140) %>"
@@ -160,7 +208,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :uv_index, uv_ranges()) %>
+      <% normal_low = normal_min(uv_ranges()) %>
+      <% normal_high = normal_max(uv_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :uv_index, uv_ranges(), 320, 140) %>"
@@ -188,7 +252,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :als_lux, als_ranges()) %>
+      <% normal_low = normal_min(als_ranges()) %>
+      <% normal_high = normal_max(als_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :als_lux, als_ranges(), 320, 140) %>"
@@ -216,7 +296,23 @@
         </span>
       </div>
 
+      <% {min_val, max_val} = chart_bounds(@weather_conditions, :light_lumens, light_ranges()) %>
+      <% normal_low = normal_min(light_ranges()) %>
+      <% normal_high = normal_max(light_ranges()) %>
+      <% y_low = y_for_value(normal_low, min_val, max_val, 140) %>
+      <% y_high = y_for_value(normal_high, min_val, max_val, 140) %>
+
       <svg viewBox="0 0 320 140" class="chart-svg">
+        <rect
+          x="0"
+          y="<%= y_high %>"
+          width="320"
+          height="<%= max(y_low - y_high, 0) %>"
+          fill="#10b981"
+          opacity="0.08"
+        />
+        <line x1="0" x2="320" y1="<%= y_high %>" y2="<%= y_high %>" class="normal-line" />
+        <line x1="0" x2="320" y1="<%= y_low %>" y2="<%= y_low %>" class="normal-line" />
         <polyline
           fill="none"
           points="<%= chart_points_with_ranges(@weather_conditions, :light_lumens, light_ranges(), 320, 140) %>"
@@ -343,6 +439,13 @@
     display: block;
     background: #f9fafb;
     border-radius: 12px;
+  }
+
+  .normal-line {
+    stroke: #10b981;
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+    opacity: 0.6;
   }
 
   .chart-range {

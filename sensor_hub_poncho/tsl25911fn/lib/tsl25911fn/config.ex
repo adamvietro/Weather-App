@@ -74,29 +74,32 @@ defmodule TSL25911FN.Config do
     {:it_600_ms, :max} => 0.0864
   }
 
-  def to_lumens(%{int_time: it, gain: gain} = config, ch0, ch1) do
+  def to_lumens(%{int_time: it, gain: gain}, ch0, ch1) do
     key = {it, gain}
 
     factor =
       Map.get(@to_lumens_factor, key) ||
         raise ArgumentError, "Unsupported integration_time/gain combination: #{inspect(key)}"
 
-    lux =
+    raw_diff = ch0 - ch1
+
+    adjusted =
       if ch0 == 0 do
         0.0
       else
         ratio = ch1 / ch0
-        (ch0 - ch1) * (1 - ratio)
+        raw_diff * (1 - ratio)
       end
 
-    light_lumens = max(abs(lux * factor), 0.0)
+    light_lumens = max(abs(adjusted * factor), 0.0)
 
-    Logger.debug("""
-    [TSL25911FN] Raw channels: ch0=#{ch0}, ch1=#{ch1}
-    [TSL25911FN] Difference (ch0 - ch1): #{lux}
-    [TSL25911FN] Integration time: #{inspect(it)}, Gain: #{inspect(gain)}
-    [TSL25911FN] Factor: #{factor}, Light lumens: #{light_lumens}
-    """)
+    # Logger.debug("""
+    # [TSL25911FN] Raw channels: ch0=#{ch0}, ch1=#{ch1}
+    # [TSL25911FN] Raw difference (ch0 - ch1): #{raw_diff}
+    # [TSL25911FN] Adjusted value: #{adjusted}
+    # [TSL25911FN] Integration time: #{inspect(it)}, Gain: #{inspect(gain)}
+    # [TSL25911FN] Factor: #{factor}, Light lumens: #{light_lumens}
+    # """)
 
     %{light_lumens: light_lumens}
   end

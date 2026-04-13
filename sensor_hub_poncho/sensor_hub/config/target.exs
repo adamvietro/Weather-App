@@ -10,7 +10,7 @@ config :logger, backends: [RingLogger]
 # library documentation for more control in ordering how OTP
 # applications are started and handling failures.
 
-config :shoehorn, init: [:nerves_runtime, :nerves_pack]
+config :shoehorn, init: [:nerves_runtime, :nerves_pack, :nerves_time]
 
 # Erlinit can be configured without a rootfs_overlay. See
 # https://github.com/nerves-project/erlinit/ for more information on
@@ -110,6 +110,9 @@ config :mdns_lite,
       port: 4369
     }
   ]
+
+config :nerves_time,
+  servers: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"]
 
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
